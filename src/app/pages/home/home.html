@@ -1,0 +1,75 @@
+<section class="hero cancha-fondo">
+  <div class="hero-contenido">
+    <h1>Torneos de fútbol de Bogotá</h1>
+    <p class="hero-texto">
+      Consulta inscripciones, partidos, tablas de posiciones y goleadores de cada torneo.
+    </p>
+    <div class="hero-acciones">
+      <a class="boton boton-peto" routerLink="." fragment="torneos">Ver torneos</a>
+      @if (!auth.autenticado()) {
+        <a class="boton boton-claro" routerLink="/registro">Crear cuenta</a>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="torneos" id="torneos" aria-labelledby="titulo-torneos">
+  <div class="torneos-cabecera">
+    <h2 id="titulo-torneos">Torneos</h2>
+    <div class="filtros" role="group" aria-label="Filtrar por estado">
+      @for (f of filtros; track f.texto) {
+        <button
+          type="button"
+          class="filtro"
+          [class.activo]="filtro() === f.valor"
+          [attr.aria-pressed]="filtro() === f.valor"
+          (click)="elegir(f.valor)"
+        >
+          {{ f.texto }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <p class="mensaje-lista" role="status">Cargando torneos…</p>
+  } @else if (error(); as mensaje) {
+    <div class="aviso aviso-error" role="alert">
+      <p>{{ mensaje }}</p>
+      <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else if (torneos().length === 0) {
+    <p class="mensaje-lista">No hay torneos con este filtro.</p>
+  } @else {
+    <ul class="lista">
+      @for (t of torneos(); track t.idTorneo) {
+        <li class="fila">
+          <div class="numeral" [attr.aria-label]="'Modalidad ' + numeral(t.modalidad)">
+            {{ numeral(t.modalidad) }}
+          </div>
+
+          <div class="datos">
+            <h3>{{ t.nombre }}</h3>
+            <p class="detalle">
+              <span>{{ t.fechaInicio | date: 'd MMM' }} al {{ t.fechaFin | date: 'd MMM y' }}</span>
+              <span>Categoría {{ t.categoria }}</span>
+              <span>Organiza {{ t.nombreOrganizador }}</span>
+            </p>
+          </div>
+
+          <div class="resumen">
+            <span [class]="claseEstado(t.estado)">{{ etiquetaEstado(t.estado) }}</span>
+            <span>Hasta {{ t.maxEquipos }} equipos</span>
+            <span>
+              @if (t.costoInscripcion === 0) {
+                Inscripción gratis
+              } @else {
+                Inscripción {{ t.costoInscripcion | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+              }
+            </span>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

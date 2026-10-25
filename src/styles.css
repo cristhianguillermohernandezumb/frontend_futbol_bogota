@@ -1,1 +1,190 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  /* Paleta: papel de planilla, tinta, cancha sintetica y peto naranja */
+  --tiza: #eef1ec;
+  --tiza-apagada: #b9c4c0;
+  --papel: #ffffff;
+  --tinta: #0f2128;
+  --texto-suave: #4b5a57;
+  --linea: #cbd3cc;
+  --cancha: #17653f;
+  --cancha-oscura: #0f4a2e;
+  --peto: #ff6a13;
+  --peto-oscuro: #e65a08;
+  --peto-claro: #ffe3d0;
+  --error: #b3261e;
+  --error-claro: #fbe4e1;
+
+  --fuente-titulo: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --fuente-texto: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--tiza);
+  color: var(--tinta);
+  font-family: var(--fuente-texto);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0.005em;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--peto);
+  outline-offset: 2px;
+}
+
+/* Fondo de cancha: franjas de pasto, linea de medio campo y circulo central a la derecha */
+.cancha-fondo {
+  background-color: var(--cancha);
+  background-image:
+    radial-gradient(circle at 78% 50%, transparent 95px, rgba(255, 255, 255, 0.22) 95px, rgba(255, 255, 255, 0.22) 97px, transparent 97px),
+    linear-gradient(90deg, transparent calc(78% - 1px), rgba(255, 255, 255, 0.22) calc(78% - 1px), rgba(255, 255, 255, 0.22) calc(78% + 1px), transparent calc(78% + 1px)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0, rgba(255, 255, 255, 0.045) 72px, transparent 72px, transparent 144px);
+  color: var(--tiza);
+}
+
+@media (max-width: 700px) {
+  /* En pantallas angostas las lineas de la cancha taparian el texto: quedan solo las franjas de pasto */
+  .cancha-fondo {
+    background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0, rgba(255, 255, 255, 0.045) 72px, transparent 72px, transparent 144px);
+  }
+}
+
+/* Botones y enlaces */
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 1.15rem;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.boton-peto {
+  background: var(--peto);
+  color: var(--tinta);
+}
+
+.boton-peto:hover {
+  background: var(--peto-oscuro);
+}
+
+.boton-claro {
+  border-color: var(--tiza);
+  color: var(--tiza);
+  background: transparent;
+}
+
+.boton-claro:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.enlace {
+  padding: 0.25rem 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Formularios */
+.formulario {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.grupo {
+  display: grid;
+  align-content: start;
+  gap: 0.3rem;
+}
+
+.grupo label,
+.grupo legend {
+  font-weight: 600;
+}
+
+.grupo input[type='text'],
+.grupo input[type='email'],
+.grupo input[type='password'],
+.grupo input[type='tel'] {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1.5px solid var(--texto-suave);
+  border-radius: 4px;
+  background: var(--papel);
+  color: var(--tinta);
+  font: inherit;
+}
+
+.grupo input[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+.ayuda {
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}
+
+.error-campo {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--error);
+}
+
+.aviso {
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--cancha);
+  background: #dcebe2;
+  color: var(--tinta);
+}
+
+.aviso-error {
+  border-left-color: var(--error);
+  background: var(--error-claro);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

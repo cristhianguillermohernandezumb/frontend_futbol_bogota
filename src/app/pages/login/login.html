@@ -1,0 +1,57 @@
+<section class="acceso">
+  <aside class="acceso-lateral cancha-fondo">
+    <p>Sigue tus torneos favoritos y recibe un aviso cuando empiecen.</p>
+  </aside>
+
+  <div class="acceso-formulario">
+    <h1>Ingresar</h1>
+
+    @if (registrado) {
+      <p class="aviso" role="status">Cuenta creada. Ingresa con tu correo y contraseña.</p>
+    }
+    @if (expirada) {
+      <p class="aviso" role="status">Tu sesión expiró. Ingresa de nuevo.</p>
+    }
+    @if (error(); as mensaje) {
+      <p class="aviso aviso-error" role="alert">{{ mensaje }}</p>
+    }
+
+    <form class="formulario" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+      <div class="grupo">
+        <label for="correo">Correo</label>
+        <input
+          id="correo"
+          type="email"
+          formControlName="correo"
+          autocomplete="email"
+          [attr.aria-invalid]="intento() && form.controls.correo.invalid"
+          [attr.aria-describedby]="intento() && form.controls.correo.invalid ? 'correo-error' : null"
+        />
+        @if (intento() && form.controls.correo.invalid) {
+          <p class="error-campo" id="correo-error">Escribe un correo válido, por ejemplo nombre&#64;correo.com.</p>
+        }
+      </div>
+
+      <div class="grupo">
+        <label for="contrasenia">Contraseña</label>
+        <input
+          id="contrasenia"
+          type="password"
+          formControlName="contrasenia"
+          autocomplete="current-password"
+          [attr.aria-invalid]="intento() && form.controls.contrasenia.invalid"
+          [attr.aria-describedby]="intento() && form.controls.contrasenia.invalid ? 'contrasenia-error' : null"
+        />
+        @if (intento() && form.controls.contrasenia.invalid) {
+          <p class="error-campo" id="contrasenia-error">Escribe tu contraseña.</p>
+        }
+      </div>
+
+      <button type="submit" class="boton boton-peto" [disabled]="enviando()">
+        {{ enviando() ? 'Ingresando…' : 'Ingresar' }}
+      </button>
+    </form>
+
+    <p class="alterno">¿No tienes cuenta? <a routerLink="/registro">Crea una</a></p>
+  </div>
+</section>
