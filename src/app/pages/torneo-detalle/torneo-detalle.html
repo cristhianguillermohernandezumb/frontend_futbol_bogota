@@ -1,0 +1,204 @@
+<a class="volver" routerLink="/">← Todos los torneos</a>
+
+@if (torneo().cargando) {
+  <p class="mensaje" role="status">Cargando torneo…</p>
+} @else if (torneo().error; as mensaje) {
+  <div class="aviso aviso-error" role="alert">
+    <p>{{ mensaje }}</p>
+    <button type="button" class="enlace" (click)="cargarTodo()">Reintentar</button>
+  </div>
+} @else if (torneo().datos; as t) {
+  <header class="cabecera cancha-fondo">
+    <div class="cabecera-numeral" [attr.aria-label]="'Modalidad ' + numeral(t.modalidad)">
+      {{ numeral(t.modalidad) }}
+    </div>
+    <div class="cabecera-datos">
+      <span [class]="claseEstado(t.estado)">{{ etiquetaTorneo(t.estado) }}</span>
+      <h1>{{ t.nombre }}</h1>
+      <p class="cabecera-detalle">
+        <span>{{ t.fechaInicio | date: 'd MMM' }} al {{ t.fechaFin | date: 'd MMM y' }}</span>
+        <span>Categoría {{ t.categoria }}</span>
+        <span>Organiza {{ t.nombreOrganizador }}</span>
+        <span>Hasta {{ t.maxEquipos }} equipos</span>
+        <span>
+          @if (t.costoInscripcion === 0) {
+            Inscripción gratis
+          } @else {
+            Inscripción {{ t.costoInscripcion | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+          }
+        </span>
+      </p>
+    </div>
+  </header>
+
+  <div class="pestanas" role="tablist" aria-label="Secciones del torneo">
+    @for (p of pestanas; track p.id) {
+      <button
+        type="button"
+        role="tab"
+        class="pestana"
+        [id]="'tab-' + p.id"
+        [class.activa]="pestana() === p.id"
+        [attr.aria-selected]="pestana() === p.id"
+        [attr.aria-controls]="'panel-' + p.id"
+        (click)="elegir(p.id)"
+      >
+        {{ p.texto }}
+      </button>
+    }
+  </div>
+
+  <section class="panel" role="tabpanel" [id]="'panel-' + pestana()" [attr.aria-labelledby]="'tab-' + pestana()">
+    @switch (pestana()) {
+      @case ('posiciones') {
+        @if (posiciones().cargando) {
+          <p class="mensaje" role="status">Cargando posiciones…</p>
+        } @else if (posiciones().error; as mensaje) {
+          <div class="aviso aviso-error" role="alert">
+            <p>{{ mensaje }}</p>
+            <button type="button" class="enlace" (click)="cargarPosiciones()">Reintentar</button>
+          </div>
+        } @else if (posiciones().datos.length === 0) {
+          <p class="mensaje">Aún no hay posiciones: se calculan con los partidos finalizados.</p>
+        } @else {
+          <div class="tabla-envoltura">
+            <table class="tabla">
+              <caption class="solo-lectores">Tabla de posiciones</caption>
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col" class="izq">Equipo</th>
+                  <th scope="col" title="Partidos jugados">PJ</th>
+                  <th scope="col" title="Ganados">G</th>
+                  <th scope="col" title="Empatados">E</th>
+                  <th scope="col" title="Perdidos">P</th>
+                  <th scope="col" title="Goles a favor">GF</th>
+                  <th scope="col" title="Goles en contra">GC</th>
+                  <th scope="col" title="Diferencia de goles">DG</th>
+                  <th scope="col" title="Puntos" class="pts">Pts</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (f of posiciones().datos; track f.idEquipo) {
+                  <tr>
+                    <td>{{ f.posicion }}</td>
+                    <th scope="row" class="izq">{{ f.nombreEquipo }}</th>
+                    <td>{{ f.partidosJugados }}</td>
+                    <td>{{ f.ganados }}</td>
+                    <td>{{ f.empatados }}</td>
+                    <td>{{ f.perdidos }}</td>
+                    <td>{{ f.golesFavor }}</td>
+                    <td>{{ f.golesContra }}</td>
+                    <td>{{ f.diferenciaGoles > 0 ? '+' + f.diferenciaGoles : f.diferenciaGoles }}</td>
+                    <td class="pts">{{ f.puntos }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="nota">Victoria 3 puntos, empate 1, derrota 0. Solo cuentan los partidos finalizados.</p>
+        }
+      }
+
+      @case ('partidos') {
+        @if (partidos().cargando) {
+          <p class="mensaje" role="status">Cargando partidos…</p>
+        } @else if (partidos().error; as mensaje) {
+          <div class="aviso aviso-error" role="alert">
+            <p>{{ mensaje }}</p>
+            <button type="button" class="enlace" (click)="cargarPartidos()">Reintentar</button>
+          </div>
+        } @else if (partidos().datos.length === 0) {
+          <p class="mensaje">Todavía no hay partidos programados.</p>
+        } @else {
+          @for (j of jornadas(); track j.jornada) {
+            <h2 class="jornada">Jornada {{ j.jornada }}</h2>
+            <ul class="partidos">
+              @for (p of j.partidos; track p.idPartido) {
+                <li class="partido">
+                  <p class="partido-fecha">
+                    {{ p.fechaHora | date: 'EEE d MMM, h:mm a' }} · {{ p.nombreCancha }}
+                    @if (p.fase) {
+                      · {{ p.fase }}
+                    }
+                  </p>
+                  <div class="partido-cruce">
+                    <span class="equipo equipo-local">{{ p.local ?? 'Por definir' }}</span>
+                    @if (conMarcador(p)) {
+                      <span class="marcador" aria-label="Marcador">{{ p.golesLocal }} - {{ p.golesVisitante }}</span>
+                    } @else {
+                      <span class="marcador vs">vs</span>
+                    }
+                    <span class="equipo equipo-visitante">{{ p.visitante ?? 'Por definir' }}</span>
+                  </div>
+                  <span [class]="claseEstado(p.estado)">{{ etiquetaPartido(p.estado) }}</span>
+                </li>
+              }
+            </ul>
+          }
+        }
+      }
+
+      @case ('equipos') {
+        @if (equipos().cargando) {
+          <p class="mensaje" role="status">Cargando equipos…</p>
+        } @else if (equipos().error; as mensaje) {
+          <div class="aviso aviso-error" role="alert">
+            <p>{{ mensaje }}</p>
+            <button type="button" class="enlace" (click)="cargarEquipos()">Reintentar</button>
+          </div>
+        } @else if (equipos().datos.length === 0) {
+          <p class="mensaje">Aún no hay equipos inscritos.</p>
+        } @else {
+          <ul class="equipos">
+            @for (e of equipos().datos; track e.idEquipo) {
+              <li class="equipo-tarjeta">
+                <h3>{{ e.nombreEquipo }}</h3>
+                <p>Inscrito el {{ e.fechaInscripcion | date: 'd MMM y' }}</p>
+                <p>{{ etiquetaInscripcion(e.estadoInscripcion) }}</p>
+              </li>
+            }
+          </ul>
+        }
+      }
+
+      @case ('goleadores') {
+        @if (goleadores().cargando) {
+          <p class="mensaje" role="status">Cargando goleadores…</p>
+        } @else if (goleadores().error; as mensaje) {
+          <div class="aviso aviso-error" role="alert">
+            <p>{{ mensaje }}</p>
+            <button type="button" class="enlace" (click)="cargarGoleadores()">Reintentar</button>
+          </div>
+        } @else if (goleadores().datos.length === 0) {
+          <p class="mensaje">Aún no hay goles registrados.</p>
+        } @else {
+          <div class="tabla-envoltura">
+            <table class="tabla">
+              <caption class="solo-lectores">Tabla de goleadores</caption>
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col" class="izq">Jugador</th>
+                  <th scope="col" class="izq">Equipo</th>
+                  <th scope="col" class="pts">Goles</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (g of goleadores().datos; track g.idJugador) {
+                  <tr>
+                    <td>{{ g.posicion }}</td>
+                    <th scope="row" class="izq">{{ g.nombreJugador }}</th>
+                    <td class="izq">{{ g.nombreEquipo }}</td>
+                    <td class="pts">{{ g.goles }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="nota">No se cuentan los autogoles.</p>
+        }
+      }
+    }
+  </section>
+}

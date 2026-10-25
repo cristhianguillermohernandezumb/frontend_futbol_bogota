@@ -54,6 +54,67 @@ export interface Torneo {
   nombreOrganizador: string;
 }
 
+export interface EquipoInscrito {
+  idEquipo: number;
+  nombreEquipo: string;
+  idTorneo: number;
+  nombreTorneo: string;
+  estadoInscripcion: string;
+  fechaInscripcion: string;
+}
+
+export type EstadoPartido = 'PROGRAMADO' | 'EN_JUEGO' | 'FINALIZADO' | 'APLAZADO';
+
+export interface Partido {
+  idPartido: number;
+  fechaHora: string;
+  estado: EstadoPartido;
+  golesLocal: number;
+  golesVisitante: number;
+  fase: string;
+  jornada: number;
+  idCancha: number;
+  nombreCancha: string;
+  idTorneo: number;
+}
+
+export interface EquipoDePartido {
+  idPartido: number;
+  idEquipo: number;
+  nombreEquipo: string;
+  idTorneo: number;
+  rol: 'LOCAL' | 'VISITANTE';
+}
+
+/** Partido junto con los nombres de sus dos equipos (se arma en el frontend). */
+export interface PartidoConEquipos extends Partido {
+  local: string | null;
+  visitante: string | null;
+}
+
+export interface Posicion {
+  posicion: number;
+  idEquipo: number;
+  nombreEquipo: string;
+  partidosJugados: number;
+  ganados: number;
+  empatados: number;
+  perdidos: number;
+  golesFavor: number;
+  golesContra: number;
+  diferenciaGoles: number;
+  puntos: number;
+}
+
+export interface Goleador {
+  posicion: number;
+  idJugador: number;
+  nombreJugador: string;
+  idEquipo: number;
+  nombreEquipo: string;
+  goles: number;
+}
+
 /** Formato de error que devuelve el backend (GlobalExceptionHandler). */
 export interface ErrorApi {
   fecha: string;

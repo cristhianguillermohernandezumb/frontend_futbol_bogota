@@ -122,6 +122,15 @@
   font-size: 1.8rem;
 }
 
+.datos h3 a {
+  text-decoration: none;
+}
+
+.datos h3 a:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
 .detalle {
   display: flex;
   flex-wrap: wrap;
@@ -146,27 +155,6 @@
   text-align: right;
 }
 
-.estado {
-  padding: 0.15rem 0.6rem;
-  border-radius: 3px;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.estado-inscripcion {
-  background: var(--peto-claro);
-  color: #7a2e00;
-}
-
-.estado-en_curso {
-  background: #d3ebdd;
-  color: var(--cancha-oscura);
-}
-
-.estado-finalizado {
-  background: #e3e6e2;
-  color: #4a5550;
-}
 
 @media (max-width: 700px) {
   .fila {
