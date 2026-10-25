@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', loadComponent: () => import('./pages/home/home').then((m) => m.Home), title: 'Fútbol Bogotá' },
+  { path: '', loadComponent: () => import('./pages/home/home').then((m) => m.Home), title: 'La CanchaRola' },
   {
     path: 'torneos/:id',
     loadComponent: () => import('./pages/torneo-detalle/torneo-detalle').then((m) => m.TorneoDetalle),
