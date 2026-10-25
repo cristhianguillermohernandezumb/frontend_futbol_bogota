@@ -1,0 +1,97 @@
+<a class="volver" routerLink="/organizador">← Mis torneos</a>
+
+@if (cargando()) {
+  <p class="mensaje" role="status">Cargando torneo…</p>
+} @else if (error(); as mensaje) {
+  <div class="aviso aviso-error" role="alert">
+    <p>{{ mensaje }}</p>
+    <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+  </div>
+} @else if (torneo(); as t) {
+  <header class="cabecera cancha-fondo">
+    <div class="cabecera-numeral" [attr.aria-label]="'Modalidad ' + numeral(t.modalidad)">{{ numeral(t.modalidad) }}</div>
+    <div class="cabecera-datos">
+      <span [class]="'estado estado-' + t.estado.toLowerCase()">{{ etiquetaEstado(t.estado) }}</span>
+      <h1>{{ t.nombre }}</h1>
+      <p class="cabecera-detalle">
+        <span>{{ t.fechaInicio | date: 'd MMM' }} al {{ t.fechaFin | date: 'd MMM y' }}</span>
+        <span>Categoría {{ t.categoria }}</span>
+        <span>Hasta {{ t.maxEquipos }} equipos</span>
+      </p>
+    </div>
+  </header>
+
+  @if (!esDueno()) {
+    <div class="aviso aviso-error" role="alert">
+      <p>Este torneo lo organiza {{ t.nombreOrganizador }}. Solo su organizador puede modificarlo.</p>
+      <a class="enlace" [routerLink]="['/torneos', t.idTorneo]">Ver página pública</a>
+    </div>
+  } @else {
+    <div class="pestanas" role="tablist" aria-label="Gestión del torneo">
+      @for (p of pestanas; track p.id) {
+        <button type="button" role="tab" class="pestana" [class.activa]="pestana() === p.id"
+          [attr.aria-selected]="pestana() === p.id" (click)="elegir(p.id)">
+          {{ p.texto }}
+        </button>
+      }
+    </div>
+
+    <section class="panel" role="tabpanel">
+      @switch (pestana()) {
+        @case ('resumen') {
+          <dl class="datos">
+            <div><dt>Organizador</dt><dd>{{ t.nombreOrganizador }}</dd></div>
+            <div>
+              <dt>Inscripción</dt>
+              <dd>
+                @if (t.costoInscripcion === 0) {
+                  Gratis
+                } @else {
+                  {{ t.costoInscripcion | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+                }
+              </dd>
+            </div>
+            <div><dt>Contacto</dt><dd>{{ t.telefono }}</dd></div>
+          </dl>
+
+          <div class="etapa">
+            <h2>Etapa del torneo</h2>
+            @if (siguiente(); as sig) {
+              @if (errorEstado(); as mensaje) {
+                <p class="aviso aviso-error" role="alert">{{ mensaje }}</p>
+              }
+              @if (!confirmando()) {
+                <button type="button" class="boton boton-tinta" (click)="confirmando.set(true)">{{ sig.boton }}</button>
+              } @else {
+                <div class="confirmacion" role="alert">
+                  <p>{{ sig.aviso }}</p>
+                  <div class="botones">
+                    <button type="button" class="boton boton-peto" [disabled]="cambiando()" (click)="cambiarEstado()">
+                      {{ cambiando() ? 'Guardando…' : 'Sí, ' + sig.boton.toLowerCase() }}
+                    </button>
+                    <button type="button" class="boton boton-borde" [disabled]="cambiando()" (click)="confirmando.set(false)">
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              }
+            } @else {
+              <p class="sub">Este torneo ya finalizó.</p>
+            }
+          </div>
+
+          <a class="enlace" [routerLink]="['/torneos', t.idTorneo]">Ver página pública del torneo</a>
+        }
+        @case ('equipos') {
+          <app-equipos-gestion [torneo]="t" />
+        }
+        @case ('jugadores') {
+          <app-jugadores-gestion [torneo]="t" />
+        }
+        @case ('partidos') {
+          <app-partidos-gestion [torneo]="t" />
+        }
+      }
+    </section>
+  }
+}

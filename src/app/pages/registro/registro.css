@@ -10,12 +10,6 @@
   font-size: 2.6rem;
 }
 
-.rejilla {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.1rem;
-}
-
 .roles {
   display: grid;
   grid-template-columns: 1fr 1fr;

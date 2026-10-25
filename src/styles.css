@@ -146,7 +146,11 @@ a {
 .grupo input[type='text'],
 .grupo input[type='email'],
 .grupo input[type='password'],
-.grupo input[type='tel'] {
+.grupo input[type='tel'],
+.grupo input[type='number'],
+.grupo input[type='date'],
+.grupo input[type='datetime-local'],
+.grupo select {
   width: 100%;
   padding: 0.65rem 0.75rem;
   border: 1.5px solid var(--texto-suave);
@@ -156,7 +160,8 @@ a {
   font: inherit;
 }
 
-.grupo input[aria-invalid='true'] {
+.grupo input[aria-invalid='true'],
+.grupo select[aria-invalid='true'] {
   border-color: var(--error);
 }
 
@@ -225,4 +230,49 @@ a {
 .estado-aplazado {
   background: var(--error-claro);
   color: var(--error);
+}
+
+.rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1.1rem;
+}
+
+.boton-tinta {
+  background: var(--tinta);
+  color: var(--tiza);
+}
+
+.boton-tinta:hover {
+  background: #1d3943;
+}
+
+.boton-borde {
+  border-color: var(--tinta);
+  background: transparent;
+  color: var(--tinta);
+}
+
+.boton-borde:hover {
+  background: rgba(15, 33, 40, 0.08);
+}
+
+.boton-peligro {
+  border-color: var(--error);
+  background: transparent;
+  color: var(--error);
+}
+
+.boton-peligro:hover {
+  background: var(--error-claro);
+}
+
+.boton-chico {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.92rem;
+}
+
+.aviso-ok {
+  border-left-color: var(--cancha);
+  background: #dcebe2;
 }

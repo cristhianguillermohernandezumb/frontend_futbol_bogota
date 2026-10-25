@@ -1,0 +1,94 @@
+<section class="pagina">
+  <a class="volver" routerLink="/organizador">← Mis torneos</a>
+  <h1>Crear torneo</h1>
+  <p class="sub">Empieza en etapa de inscripción. Luego inscribes equipos y programas partidos.</p>
+
+  @if (error(); as mensaje) {
+    <p class="aviso aviso-error" role="alert">{{ mensaje }}</p>
+  }
+
+  <form class="formulario" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+    <div class="grupo">
+      <label for="nombre">Nombre del torneo</label>
+      <input id="nombre" type="text" formControlName="nombre" maxlength="50" [attr.aria-invalid]="invalido('nombre')" />
+      @if (invalido('nombre')) {
+        <p class="error-campo">Escribe el nombre (máximo 50 caracteres).</p>
+      }
+    </div>
+
+    <div class="rejilla">
+      <div class="grupo">
+        <label for="fechaInicio">Fecha de inicio</label>
+        <input id="fechaInicio" type="date" formControlName="fechaInicio" [attr.aria-invalid]="invalido('fechaInicio')" />
+        @if (invalido('fechaInicio')) {
+          <p class="error-campo">Elige la fecha de inicio.</p>
+        }
+      </div>
+
+      <div class="grupo">
+        <label for="fechaFin">Fecha de fin</label>
+        <input id="fechaFin" type="date" formControlName="fechaFin"
+          [attr.aria-invalid]="invalido('fechaFin') || (intento() && form.hasError('fechas'))" />
+        @if (invalido('fechaFin')) {
+          <p class="error-campo">Elige la fecha de fin.</p>
+        } @else if (intento() && form.hasError('fechas')) {
+          <p class="error-campo">La fecha de fin no puede ser anterior a la de inicio.</p>
+        }
+      </div>
+    </div>
+
+    <div class="rejilla">
+      <div class="grupo">
+        <label for="modalidad">Modalidad</label>
+        <select id="modalidad" formControlName="modalidad">
+          @for (m of modalidades; track m.valor) {
+            <option [value]="m.valor">{{ m.texto }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="grupo">
+        <label for="categoria">Categoría</label>
+        <input id="categoria" type="text" formControlName="categoria" maxlength="20" placeholder="LIBRE, SUB_17…"
+          [attr.aria-invalid]="invalido('categoria')" />
+        @if (invalido('categoria')) {
+          <p class="error-campo">Escribe la categoría (máximo 20 caracteres).</p>
+        }
+      </div>
+    </div>
+
+    <div class="rejilla">
+      <div class="grupo">
+        <label for="maxEquipos">Máximo de equipos</label>
+        <input id="maxEquipos" type="number" formControlName="maxEquipos" min="2" [attr.aria-invalid]="invalido('maxEquipos')" />
+        @if (invalido('maxEquipos')) {
+          <p class="error-campo">Mínimo 2 equipos.</p>
+        }
+      </div>
+
+      <div class="grupo">
+        <label for="costoInscripcion">Costo de inscripción <span class="ayuda">(COP, 0 si es gratis)</span></label>
+        <input id="costoInscripcion" type="number" formControlName="costoInscripcion" min="0" step="1000"
+          [attr.aria-invalid]="invalido('costoInscripcion')" />
+        @if (invalido('costoInscripcion')) {
+          <p class="error-campo">Escribe un valor de 0 o más.</p>
+        }
+      </div>
+
+      <div class="grupo">
+        <label for="telefono">Teléfono de contacto</label>
+        <input id="telefono" type="tel" formControlName="telefono" inputmode="numeric" [attr.aria-invalid]="invalido('telefono')" />
+        @if (invalido('telefono')) {
+          <p class="error-campo">Escribe solo números (7 a 15 dígitos).</p>
+        }
+      </div>
+    </div>
+
+    <div class="botones">
+      <button type="submit" class="boton boton-peto" [disabled]="enviando()">
+        {{ enviando() ? 'Creando…' : 'Crear torneo' }}
+      </button>
+      <a class="boton boton-borde" routerLink="/organizador">Cancelar</a>
+    </div>
+  </form>
+</section>

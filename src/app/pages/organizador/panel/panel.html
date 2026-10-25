@@ -1,0 +1,46 @@
+<section class="panel">
+  <div class="cabecera">
+    <div>
+      <h1>{{ auth.rol() === 'ADMIN' ? 'Todos los torneos' : 'Mis torneos' }}</h1>
+      <p class="sub">Crea torneos, inscribe equipos y programa los partidos.</p>
+    </div>
+    <a class="boton boton-peto" routerLink="/organizador/torneos/nuevo">Crear torneo</a>
+  </div>
+
+  @if (cargando()) {
+    <p class="mensaje" role="status">Cargando torneos…</p>
+  } @else if (error(); as mensaje) {
+    <div class="aviso aviso-error" role="alert">
+      <p>{{ mensaje }}</p>
+      <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else if (torneos().length === 0) {
+    <div class="vacio">
+      <p>Todavía no tienes torneos.</p>
+      <a class="boton boton-tinta" routerLink="/organizador/torneos/nuevo">Crear mi primer torneo</a>
+    </div>
+  } @else {
+    <ul class="lista">
+      @for (t of torneos(); track t.idTorneo) {
+        <li class="fila">
+          <div class="datos">
+            <h2>{{ t.nombre }}</h2>
+            <p class="detalle">
+              {{ t.fechaInicio | date: 'd MMM' }} al {{ t.fechaFin | date: 'd MMM y' }} · Hasta {{ t.maxEquipos }} equipos ·
+              @if (t.costoInscripcion === 0) {
+                Gratis
+              } @else {
+                {{ t.costoInscripcion | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+              }
+            </p>
+          </div>
+          <span [class]="'estado estado-' + t.estado.toLowerCase()">{{ etiquetaEstado(t.estado) }}</span>
+          <div class="acciones">
+            <a class="boton boton-tinta boton-chico" [routerLink]="['/organizador/torneos', t.idTorneo]">Gestionar</a>
+            <a class="boton boton-borde boton-chico" [routerLink]="['/torneos', t.idTorneo]">Ver público</a>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

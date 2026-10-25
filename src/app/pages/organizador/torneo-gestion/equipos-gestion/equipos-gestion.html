@@ -1,0 +1,133 @@
+@if (mensaje(); as m) {
+  <p [class]="m.tipo === 'ok' ? 'aviso aviso-ok' : 'aviso aviso-error'" [attr.role]="m.tipo === 'ok' ? 'status' : 'alert'">
+    {{ m.texto }}
+  </p>
+}
+
+@if (cargando()) {
+  <p class="vacio" role="status">Cargando equipos…</p>
+} @else if (errorCarga(); as texto) {
+  <div class="aviso aviso-error" role="alert">
+    <p>{{ texto }}</p>
+    <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+  </div>
+} @else {
+  <h2>Equipos inscritos <span class="cupo">{{ inscritos().length }} de {{ torneo().maxEquipos }}</span></h2>
+
+  @if (inscritos().length === 0) {
+    <p class="vacio">Aún no hay equipos inscritos.</p>
+  } @else {
+    <ul class="lista">
+      @for (e of inscritos(); track e.idEquipo) {
+        <li class="fila">
+          <div>
+            <strong>{{ e.nombreEquipo }}</strong>
+            <p class="detalle">Inscrito el {{ e.fechaInscripcion | date: 'd MMM y' }}</p>
+          </div>
+          <span [class]="e.estadoInscripcion === 'PAGADA' ? 'pago pagada' : 'pago'">
+            {{ e.estadoInscripcion === 'PAGADA' ? 'Pagada' : 'Pendiente de pago' }}
+          </span>
+          <div class="acciones">
+            @if (e.estadoInscripcion !== 'PAGADA' && torneo().estado !== 'FINALIZADO') {
+              <button type="button" class="boton boton-tinta boton-chico" [disabled]="trabajando()" (click)="pagar(e)">
+                Marcar pagada
+              </button>
+            }
+            @if (abiertas()) {
+              @if (retirando() === e.idEquipo) {
+                <button type="button" class="boton boton-peligro boton-chico" [disabled]="trabajando()" (click)="retirar(e)">
+                  Confirmar retiro
+                </button>
+                <button type="button" class="boton boton-borde boton-chico" (click)="retirando.set(null)">No</button>
+              } @else {
+                <button type="button" class="boton boton-borde boton-chico" (click)="retirando.set(e.idEquipo)">Retirar</button>
+              }
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (!abiertas()) {
+    <p class="aviso">Las inscripciones están cerradas: el torneo ya no está en etapa de inscripción.</p>
+  } @else if (lleno()) {
+    <p class="aviso">El torneo alcanzó el máximo de {{ torneo().maxEquipos }} equipos.</p>
+  } @else {
+    <div class="bloque">
+      <h2>Inscribir un equipo</h2>
+
+      @if (disponibles().length > 0) {
+        <div class="inscribir">
+          <div class="grupo">
+            <label for="existente">Equipo existente</label>
+            <select id="existente" [formControl]="existente">
+              <option [value]="0">Elige un equipo…</option>
+              @for (e of disponibles(); track e.idEquipo) {
+                <option [value]="e.idEquipo">{{ e.nombre }}</option>
+              }
+            </select>
+          </div>
+          <button type="button" class="boton boton-tinta" [disabled]="trabajando()" (click)="inscribirExistente()">
+            Inscribir
+          </button>
+        </div>
+      }
+
+      @if (!mostrarNuevo()) {
+        <button type="button" class="boton boton-borde" (click)="mostrarNuevo.set(true)">Crear un equipo nuevo</button>
+      } @else {
+        <form class="formulario nuevo" [formGroup]="form" (ngSubmit)="crearEInscribir()" novalidate>
+          <h3>Equipo nuevo</h3>
+          <div class="rejilla">
+            <div class="grupo">
+              <label for="nombre">Nombre</label>
+              <input id="nombre" type="text" formControlName="nombre" maxlength="50" [attr.aria-invalid]="invalido('nombre')" />
+              @if (invalido('nombre')) {
+                <p class="error-campo">Escribe el nombre del equipo.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="fechaFundacion">Fecha de fundación</label>
+              <input id="fechaFundacion" type="date" formControlName="fechaFundacion" [max]="hoy"
+                [attr.aria-invalid]="invalido('fechaFundacion')" />
+              @if (invalido('fechaFundacion')) {
+                <p class="error-campo">Elige una fecha (no puede ser futura).</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="correoEquipo">Correo del equipo</label>
+              <input id="correoEquipo" type="email" formControlName="correo" [attr.aria-invalid]="invalido('correo')" />
+              @if (invalido('correo')) {
+                <p class="error-campo">Escribe un correo válido.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="telefonoEquipo">Teléfono</label>
+              <input id="telefonoEquipo" type="tel" formControlName="telefonoEquipo" inputmode="numeric"
+                [attr.aria-invalid]="invalido('telefonoEquipo')" />
+              @if (invalido('telefonoEquipo')) {
+                <p class="error-campo">Solo números (7 a 15 dígitos).</p>
+              }
+            </div>
+          </div>
+          <div class="grupo">
+            <label for="escudo">Escudo <span class="ayuda">(opcional, imagen de hasta 200 KB)</span></label>
+            <input id="escudo" type="file" accept="image/*" (change)="elegirEscudo($event)" />
+            @if (errorEscudo(); as texto) {
+              <p class="error-campo">{{ texto }}</p>
+            } @else if (escudoNombre(); as nombre) {
+              <p class="ayuda">{{ nombre }}</p>
+            }
+          </div>
+          <div class="botones">
+            <button type="submit" class="boton boton-peto" [disabled]="trabajando()">
+              {{ trabajando() ? 'Guardando…' : 'Crear e inscribir' }}
+            </button>
+            <button type="button" class="boton boton-borde" (click)="mostrarNuevo.set(false)">Cancelar</button>
+          </div>
+        </form>
+      }
+    </div>
+  }
+}

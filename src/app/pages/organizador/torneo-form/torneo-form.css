@@ -1,0 +1,32 @@
+.pagina {
+  display: grid;
+  gap: 1.1rem;
+  width: min(100%, 44rem);
+  margin: 0 auto;
+  padding: 1.5rem clamp(1rem, 4vw, 2.5rem) 4rem;
+}
+
+.pagina h1 {
+  font-size: 2.6rem;
+}
+
+.volver {
+  color: var(--texto-suave);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.volver:hover {
+  color: var(--tinta);
+  text-decoration: underline;
+}
+
+.sub {
+  color: var(--texto-suave);
+}
+
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}

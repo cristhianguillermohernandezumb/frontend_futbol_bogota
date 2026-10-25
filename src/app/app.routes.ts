@@ -1,11 +1,33 @@
 import { Routes } from '@angular/router';
 
+import { rolGuard } from './core/guards';
+
+const organizador = rolGuard('ORGANIZADOR', 'ADMIN');
+
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./pages/home/home').then((m) => m.Home), title: 'La CanchaRola' },
   {
     path: 'torneos/:id',
     loadComponent: () => import('./pages/torneo-detalle/torneo-detalle').then((m) => m.TorneoDetalle),
     title: 'Torneo',
+  },
+  {
+    path: 'organizador',
+    canActivate: [organizador],
+    loadComponent: () => import('./pages/organizador/panel/panel').then((m) => m.Panel),
+    title: 'Mis torneos',
+  },
+  {
+    path: 'organizador/torneos/nuevo',
+    canActivate: [organizador],
+    loadComponent: () => import('./pages/organizador/torneo-form/torneo-form').then((m) => m.TorneoForm),
+    title: 'Crear torneo',
+  },
+  {
+    path: 'organizador/torneos/:id',
+    canActivate: [organizador],
+    loadComponent: () => import('./pages/organizador/torneo-gestion/torneo-gestion').then((m) => m.TorneoGestion),
+    title: 'Gestionar torneo',
   },
   { path: 'login', loadComponent: () => import('./pages/login/login').then((m) => m.Login), title: 'Ingresar' },
   {

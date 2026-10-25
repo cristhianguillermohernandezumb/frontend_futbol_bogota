@@ -1,0 +1,100 @@
+:host {
+  display: grid;
+  gap: 1rem;
+}
+
+h2 {
+  font-size: 1.6rem;
+}
+
+h3 {
+  font-size: 1.35rem;
+}
+
+.cupo {
+  margin-left: 0.5rem;
+  color: var(--texto-suave);
+  font-family: var(--fuente-texto);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.vacio {
+  color: var(--texto-suave);
+}
+
+.lista {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 6px;
+  background: var(--papel);
+}
+
+.detalle {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.pago {
+  padding: 0.15rem 0.6rem;
+  border-radius: 3px;
+  background: var(--peto-claro);
+  color: #7a2e00;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.pago.pagada {
+  background: #d3ebdd;
+  color: var(--cancha-oscura);
+}
+
+.acciones,
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bloque {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  margin-top: 0.5rem;
+  padding: 1.1rem 1.25rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 6px;
+  background: var(--papel);
+}
+
+.inscribir {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.nuevo {
+  width: 100%;
+  padding-top: 0.5rem;
+  border-top: 1.5px solid var(--linea);
+}
+
+@media (max-width: 700px) {
+  .fila {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+}

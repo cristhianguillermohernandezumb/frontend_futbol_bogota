@@ -1,0 +1,88 @@
+:host {
+  display: grid;
+  gap: 1rem;
+}
+
+h2 {
+  font-size: 1.6rem;
+}
+
+.cupo {
+  margin-left: 0.5rem;
+  color: var(--texto-suave);
+  font-family: var(--fuente-texto);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.vacio {
+  color: var(--texto-suave);
+}
+
+.selector {
+  max-width: 22rem;
+}
+
+.lista {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: 3rem 1fr auto;
+  gap: 0.9rem;
+  align-items: center;
+  padding: 0.55rem 1rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 6px;
+  background: var(--papel);
+}
+
+.camiseta {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--cancha);
+  color: var(--tiza);
+  font-family: var(--fuente-titulo);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.acciones,
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bloque {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  margin-top: 0.5rem;
+  padding: 1.1rem 1.25rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 6px;
+  background: var(--papel);
+}
+
+.bloque .formulario {
+  width: 100%;
+}
+
+@media (max-width: 700px) {
+  .fila {
+    grid-template-columns: 3rem 1fr;
+  }
+
+  .acciones {
+    grid-column: 1 / -1;
+  }
+}

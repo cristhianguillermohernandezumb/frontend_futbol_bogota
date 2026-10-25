@@ -10,6 +10,9 @@
 
   <nav class="acciones" aria-label="Cuenta">
     @if (auth.usuario(); as usuario) {
+      @if (auth.tieneRol('ORGANIZADOR', 'ADMIN')) {
+        <a class="enlace" routerLink="/organizador">Mis torneos</a>
+      }
       <span class="sesion">
         <span class="sesion-nombre">{{ usuario.primerNombre }}</span>
         <span class="sesion-rol">{{ etiquetaRol(usuario.rol) }}</span>

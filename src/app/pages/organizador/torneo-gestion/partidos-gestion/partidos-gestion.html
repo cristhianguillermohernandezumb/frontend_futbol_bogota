@@ -1,0 +1,202 @@
+@if (mensaje(); as m) {
+  <p [class]="m.tipo === 'ok' ? 'aviso aviso-ok' : 'aviso aviso-error'" [attr.role]="m.tipo === 'ok' ? 'status' : 'alert'">
+    {{ m.texto }}
+  </p>
+}
+
+@if (cargando()) {
+  <p class="vacio" role="status">Cargando partidos…</p>
+} @else if (errorCarga(); as texto) {
+  <div class="aviso aviso-error" role="alert">
+    <p>{{ texto }}</p>
+    <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+  </div>
+} @else {
+  <h2>Partidos</h2>
+
+  @if (ordenados().length === 0) {
+    <p class="vacio">Todavía no hay partidos programados.</p>
+  } @else {
+    <ul class="lista">
+      @for (p of ordenados(); track p.idPartido) {
+        <li class="partido">
+          <p class="fecha">
+            Jornada {{ p.jornada }} · {{ p.fechaHora | date: 'EEE d MMM, h:mm a' }} · {{ p.nombreCancha }}
+            @if (p.fase) {
+              · {{ p.fase }}
+            }
+          </p>
+          <div class="cruce">
+            <span class="local">{{ p.local ?? 'Por definir' }}</span>
+            @if (conMarcador(p)) {
+              <span class="marcador">{{ p.golesLocal }} - {{ p.golesVisitante }}</span>
+            } @else {
+              <span class="marcador vs">vs</span>
+            }
+            <span class="visitante">{{ p.visitante ?? 'Por definir' }}</span>
+          </div>
+          <div class="fila-acciones">
+            <span [class]="'estado estado-' + p.estado.toLowerCase()">{{ etiquetaEstado(p.estado) }}</span>
+            @for (t of transiciones(p); track t.valor) {
+              <button type="button" class="boton boton-tinta boton-chico" [disabled]="trabajando()" (click)="cambiarEstado(p, t)">
+                {{ t.texto }}
+              </button>
+            }
+            @if (puedeEliminar(p)) {
+              @if (eliminando() === p.idPartido) {
+                <button type="button" class="boton boton-peligro boton-chico" [disabled]="trabajando()" (click)="eliminar(p)">
+                  Confirmar eliminación
+                </button>
+                <button type="button" class="boton boton-borde boton-chico" (click)="eliminando.set(null)">No</button>
+              } @else {
+                <button type="button" class="boton boton-borde boton-chico" (click)="eliminando.set(p.idPartido)">Eliminar</button>
+              }
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (!puedeProgramar()) {
+    <p class="aviso">El torneo finalizó: ya no se pueden programar partidos.</p>
+  } @else {
+    <div class="bloque">
+      <h2>Programar un partido</h2>
+
+      @if (inscritos().length < 2) {
+        <p class="aviso">Necesitas al menos 2 equipos inscritos para programar un partido.</p>
+      } @else if (canchas().length === 0 && !mostrarCancha()) {
+        <p class="aviso">Aún no hay canchas. Crea una para poder programar partidos.</p>
+      } @else if (!mostrarForm()) {
+        <button type="button" class="boton boton-tinta" (click)="mostrarForm.set(true)">Programar partido</button>
+      } @else {
+        <form class="formulario" [formGroup]="form" (ngSubmit)="programar()" novalidate>
+          <div class="rejilla">
+            <div class="grupo">
+              <label for="fechaHora">Fecha y hora</label>
+              <input id="fechaHora" type="datetime-local" formControlName="fechaHora" [min]="minFecha()" [max]="maxFecha()"
+                [attr.aria-invalid]="invalido('fechaHora')" />
+              @if (invalido('fechaHora')) {
+                <p class="error-campo">Elige fecha y hora dentro de las fechas del torneo.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="idCancha">Cancha</label>
+              <select id="idCancha" formControlName="idCancha" [attr.aria-invalid]="invalido('idCancha')">
+                <option [value]="0">Elige una cancha…</option>
+                @for (c of canchas(); track c.idCancha) {
+                  <option [value]="c.idCancha">{{ c.nombre }} · {{ c.localidad }}</option>
+                }
+              </select>
+              @if (invalido('idCancha')) {
+                <p class="error-campo">Elige una cancha.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="fase">Fase</label>
+              <input id="fase" type="text" formControlName="fase" maxlength="50" [attr.aria-invalid]="invalido('fase')" />
+              @if (invalido('fase')) {
+                <p class="error-campo">Escribe la fase (por ejemplo, Grupos).</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="jornada">Jornada</label>
+              <input id="jornada" type="number" formControlName="jornada" min="1" [attr.aria-invalid]="invalido('jornada')" />
+              @if (invalido('jornada')) {
+                <p class="error-campo">La jornada empieza en 1.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="idLocal">Equipo local</label>
+              <select id="idLocal" formControlName="idLocal" [attr.aria-invalid]="invalido('idLocal')">
+                <option [value]="0">Elige un equipo…</option>
+                @for (e of inscritos(); track e.idEquipo) {
+                  <option [value]="e.idEquipo">{{ e.nombreEquipo }}</option>
+                }
+              </select>
+              @if (invalido('idLocal')) {
+                <p class="error-campo">Elige el equipo local.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="idVisitante">Equipo visitante</label>
+              <select id="idVisitante" formControlName="idVisitante" [attr.aria-invalid]="invalido('idVisitante')">
+                <option [value]="0">Elige un equipo…</option>
+                @for (e of inscritos(); track e.idEquipo) {
+                  <option [value]="e.idEquipo">{{ e.nombreEquipo }}</option>
+                }
+              </select>
+              @if (invalido('idVisitante')) {
+                <p class="error-campo">Elige el equipo visitante.</p>
+              }
+            </div>
+          </div>
+          <div class="botones">
+            <button type="submit" class="boton boton-peto" [disabled]="trabajando()">
+              {{ trabajando() ? 'Guardando…' : 'Programar' }}
+            </button>
+            <button type="button" class="boton boton-borde" (click)="mostrarForm.set(false)">Cancelar</button>
+          </div>
+        </form>
+      }
+
+      @if (!mostrarCancha()) {
+        <button type="button" class="enlace" (click)="mostrarCancha.set(true)">¿Falta una cancha? Crear cancha</button>
+      } @else {
+        <form class="formulario nuevo" [formGroup]="formCancha" (ngSubmit)="crearCancha()" novalidate>
+          <h3>Cancha nueva</h3>
+          <div class="rejilla">
+            <div class="grupo">
+              <label for="cNombre">Nombre</label>
+              <input id="cNombre" type="text" formControlName="nombre" maxlength="50" [attr.aria-invalid]="invalidoCancha('nombre')" />
+              @if (invalidoCancha('nombre')) {
+                <p class="error-campo">Escribe el nombre.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="cDireccion">Dirección</label>
+              <input id="cDireccion" type="text" formControlName="direccion" maxlength="50"
+                [attr.aria-invalid]="invalidoCancha('direccion')" />
+              @if (invalidoCancha('direccion')) {
+                <p class="error-campo">Escribe la dirección.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="cLocalidad">Localidad</label>
+              <input id="cLocalidad" type="text" formControlName="localidad" maxlength="50"
+                [attr.aria-invalid]="invalidoCancha('localidad')" />
+              @if (invalidoCancha('localidad')) {
+                <p class="error-campo">Escribe la localidad.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="cSuperficie">Superficie</label>
+              <select id="cSuperficie" formControlName="tipoSuperficie">
+                @for (s of superficies; track s.valor) {
+                  <option [value]="s.valor">{{ s.texto }}</option>
+                }
+              </select>
+            </div>
+            <div class="grupo">
+              <label for="cCapacidad">Capacidad</label>
+              <input id="cCapacidad" type="number" formControlName="capacidad" min="1" [attr.aria-invalid]="invalidoCancha('capacidad')" />
+            </div>
+            <div class="grupo">
+              <label for="cLargo">Largo (m)</label>
+              <input id="cLargo" type="number" formControlName="largo" min="1" [attr.aria-invalid]="invalidoCancha('largo')" />
+            </div>
+            <div class="grupo">
+              <label for="cAncho">Ancho (m)</label>
+              <input id="cAncho" type="number" formControlName="ancho" min="1" [attr.aria-invalid]="invalidoCancha('ancho')" />
+            </div>
+          </div>
+          <div class="botones">
+            <button type="submit" class="boton boton-tinta" [disabled]="trabajando()">Crear cancha</button>
+            <button type="button" class="boton boton-borde" (click)="mostrarCancha.set(false)">Cancelar</button>
+          </div>
+        </form>
+      }
+    </div>
+  }
+}

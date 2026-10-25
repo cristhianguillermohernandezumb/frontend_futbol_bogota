@@ -115,6 +115,94 @@ export interface Goleador {
   goles: number;
 }
 
+export interface TorneoRequest {
+  nombre: string;
+  fechaInicio: string;
+  fechaFin: string;
+  telefono: number;
+  modalidad: Modalidad;
+  categoria: string;
+  costoInscripcion: number;
+  maxEquipos: number;
+  idOrganizador: number;
+}
+
+export interface Equipo {
+  idEquipo: number;
+  nombre: string;
+  fechaFundacion: string;
+  correo: string;
+  telefonoEquipo: number;
+}
+
+export interface EquipoRequest {
+  nombre: string;
+  fechaFundacion: string;
+  correo: string;
+  telefonoEquipo: number;
+  /** Imagen en base64 (el backend la recibe como byte[]). */
+  escudo: string;
+}
+
+export type TipoSuperficie = 'SINTETICA' | 'NATURAL' | 'CEMENTO';
+
+export interface Cancha {
+  idCancha: number;
+  nombre: string;
+  direccion: string;
+  tipoSuperficie: TipoSuperficie;
+  localidad: string;
+  capacidad: number;
+  largo: number;
+  ancho: number;
+}
+
+export type CanchaRequest = Omit<Cancha, 'idCancha'>;
+
+export interface PartidoRequest {
+  fechaHora: string;
+  estado: EstadoPartido;
+  fase: string;
+  jornada: number;
+  idCancha: number;
+  idTorneo: number;
+}
+
+export type TipoDocumento = 'CC' | 'CE' | 'TI' | 'PAS';
+export type PiernaHabil = 'DERECHA' | 'IZQUIERDA' | 'AMBIDIESTRO';
+export type PosicionJugador = 'PORTERO' | 'DEFENSA' | 'VOLANTE' | 'DELANTERO';
+export type EstadoJugador = 'ACTIVO' | 'LESIONADO' | 'SUSPENDIDO';
+
+export interface JugadorRequest {
+  documento: string;
+  tipoDocumento: TipoDocumento;
+  primerNombre: string;
+  segundoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  fechaNacimiento: string;
+  estatura: number;
+  peso: number;
+  piernaHabil: PiernaHabil;
+  nacionalidad: string;
+  estado: EstadoJugador;
+  posicion: PosicionJugador;
+  correos: string[];
+  telefonos: string[];
+}
+
+export interface Jugador extends JugadorRequest {
+  idJugador: number;
+}
+
+export interface JugadorInscrito {
+  idJugador: number;
+  nombreJugador: string;
+  idEquipo: number;
+  idTorneo: number;
+  numeroCamiseta: number;
+}
+
 /** Formato de error que devuelve el backend (GlobalExceptionHandler). */
 export interface ErrorApi {
   fecha: string;
