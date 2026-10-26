@@ -1,0 +1,103 @@
+@if (mensaje(); as m) {
+  <p [class]="m.tipo === 'ok' ? 'aviso aviso-ok' : 'aviso aviso-error'" [attr.role]="m.tipo === 'ok' ? 'status' : 'alert'">
+    {{ m.texto }}
+  </p>
+}
+
+@if (editable()) {
+  @if (enJuego()) {
+    <form class="registro" (ngSubmit)="registrar()" novalidate>
+      <fieldset class="tipos">
+        <legend>¿Qué pasó?</legend>
+        @for (t of tipos; track t.valor) {
+          <label [class]="'chip ' + (tipo() === t.valor ? 'activo' : '')">
+            <input type="radio" name="tipo" [value]="t.valor" [checked]="tipo() === t.valor" (change)="tipo.set(t.valor)" />
+            <span [class]="claseTipo(t.valor)" aria-hidden="true"></span>
+            {{ t.texto }}
+          </label>
+        }
+      </fieldset>
+
+      <fieldset class="equipos">
+        <legend>Equipo</legend>
+        <label [class]="'chip ' + (idEquipo() === local().idEquipo ? 'activo' : '')">
+          <input type="radio" name="equipo" [checked]="idEquipo() === local().idEquipo" (change)="elegirEquipo(local().idEquipo)" />
+          {{ local().nombreEquipo }}
+        </label>
+        <label [class]="'chip ' + (idEquipo() === visitante().idEquipo ? 'activo' : '')">
+          <input type="radio" name="equipo" [checked]="idEquipo() === visitante().idEquipo" (change)="elegirEquipo(visitante().idEquipo)" />
+          {{ visitante().nombreEquipo }}
+        </label>
+      </fieldset>
+
+      <div class="rejilla">
+        <div class="grupo">
+          <label for="evJugador">Jugador</label>
+          <select id="evJugador" name="jugador" [ngModel]="idJugador()" (ngModelChange)="idJugador.set($event)"
+            [attr.aria-invalid]="intento() && !idJugador()">
+            <option [ngValue]="0">Elige un jugador…</option>
+            @for (j of jugadores(); track j.idJugador) {
+              <option [ngValue]="j.idJugador">{{ j.nombreJugador }}{{ j.titular === 'N' ? ' (suplente)' : '' }}</option>
+            }
+          </select>
+          @if (intento() && !idJugador()) {
+            <p class="error-campo">Elige un jugador de la alineación.</p>
+          }
+          @if (jugadores().length === 0) {
+            <p class="ayuda">Este equipo no tiene jugadores en la alineación.</p>
+          }
+        </div>
+        <div class="grupo">
+          <label for="evMinuto">Minuto</label>
+          <input id="evMinuto" name="minuto" type="number" min="0" max="120" [ngModel]="minuto()" (ngModelChange)="minuto.set($event)"
+            [attr.aria-invalid]="intento() && (minuto() === null || minuto()! < 0 || minuto()! > 120)" />
+          @if (intento() && (minuto() === null || minuto()! < 0 || minuto()! > 120)) {
+            <p class="error-campo">Un minuto de 0 a 120.</p>
+          }
+        </div>
+      </div>
+
+      <button type="submit" class="boton boton-peto" [disabled]="trabajando()">
+        {{ trabajando() ? 'Registrando…' : 'Registrar ' + etiqueta(tipo()).toLowerCase() }}
+      </button>
+    </form>
+  } @else if (partido().estado === 'FINALIZADO') {
+    <p class="aviso">El partido terminó: los eventos ya no se pueden registrar ni borrar.</p>
+  } @else {
+    <p class="aviso">Los eventos se registran cuando el partido está en juego. Arma la alineación e inicia el partido.</p>
+  }
+}
+
+@if (cargando()) {
+  <p class="vacio" role="status">Cargando eventos…</p>
+} @else if (errorCarga(); as texto) {
+  <div class="aviso aviso-error" role="alert">
+    <p>{{ texto }}</p>
+    <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+  </div>
+} @else if (ordenados().length === 0) {
+  <p class="vacio">Todavía no hay eventos.</p>
+} @else {
+  <ol class="linea">
+    @for (e of ordenados(); track e.idEvento) {
+      <li class="evento">
+        <span class="minuto">{{ e.minuto }}'</span>
+        <span [class]="claseTipo(e.tipoEvento)" aria-hidden="true"></span>
+        <span class="texto">
+          <strong>{{ etiqueta(e.tipoEvento) }}</strong> · {{ e.nombreJugador }}
+          <span class="equipo">{{ nombreEquipo(e.idEquipo) }}</span>
+        </span>
+        @if (editable() && enJuego()) {
+          @if (borrando() === e.idEvento) {
+            <span class="acciones">
+              <button type="button" class="boton boton-peligro boton-chico" [disabled]="trabajando()" (click)="eliminar(e)">Confirmar</button>
+              <button type="button" class="boton boton-borde boton-chico" (click)="borrando.set(null)">No</button>
+            </span>
+          } @else {
+            <button type="button" class="boton boton-borde boton-chico" (click)="borrando.set(e.idEvento)">Borrar</button>
+          }
+        }
+      </li>
+    }
+  </ol>
+}

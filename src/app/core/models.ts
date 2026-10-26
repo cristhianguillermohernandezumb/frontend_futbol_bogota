@@ -231,6 +231,39 @@ export interface ArbitroAsignado {
   rol: RolArbitro;
 }
 
+export interface Alineacion {
+  idPartido: number;
+  idEquipo: number;
+  idTorneo: number;
+  idJugador: number;
+  nombreJugador: string;
+  /** S = titular, N = suplente. */
+  titular: 'S' | 'N';
+  minutosJugados: number;
+}
+
+export type TipoEvento = 'GOL' | 'AUTOGOL' | 'AMARILLA' | 'ROJA' | 'FALTA';
+
+export interface EventoPartido {
+  idEvento: number;
+  minuto: number;
+  tipoEvento: TipoEvento;
+  idPartido: number;
+  idEquipo: number;
+  idTorneo: number;
+  idJugador: number;
+  nombreJugador: string;
+}
+
+export interface EventoRequest {
+  minuto: number;
+  tipoEvento: TipoEvento;
+  idPartido: number;
+  idEquipo: number;
+  idTorneo: number;
+  idJugador: number;
+}
+
 /** Formato de error que devuelve el backend (GlobalExceptionHandler). */
 export interface ErrorApi {
   fecha: string;

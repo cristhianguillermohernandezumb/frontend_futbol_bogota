@@ -29,6 +29,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/organizador/torneo-gestion/torneo-gestion').then((m) => m.TorneoGestion),
     title: 'Gestionar torneo',
   },
+  {
+    path: 'organizador/partidos/:id',
+    canActivate: [organizador],
+    loadComponent: () => import('./pages/organizador/partido-gestion/partido-gestion').then((m) => m.PartidoGestion),
+    title: 'Partido',
+  },
   { path: 'login', loadComponent: () => import('./pages/login/login').then((m) => m.Login), title: 'Ingresar' },
   {
     path: 'registro',

@@ -1,0 +1,101 @@
+@if (partido(); as p) {
+  <a class="volver" [routerLink]="['/organizador/torneos', p.idTorneo]">← {{ torneo()?.nombre ?? 'Torneo' }}</a>
+} @else {
+  <a class="volver" routerLink="/organizador">← Mis torneos</a>
+}
+
+@if (cargando()) {
+  <p class="mensaje" role="status">Cargando partido…</p>
+} @else if (error(); as texto) {
+  <div class="aviso aviso-error" role="alert">
+    <p>{{ texto }}</p>
+    <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+  </div>
+} @else if (partido(); as p) {
+  <header class="marcador-caja cancha-fondo">
+    <p class="meta">
+      Jornada {{ p.jornada }} · {{ p.fase }} · {{ p.fechaHora | date: 'EEE d MMM, h:mm a' }} · {{ p.nombreCancha }}
+    </p>
+    <div class="cruce">
+      <span class="equipo equipo-local">{{ local()?.nombreEquipo ?? 'Por definir' }}</span>
+      @if (conMarcador()) {
+        <span class="goles" aria-label="Marcador">{{ p.golesLocal }} - {{ p.golesVisitante }}</span>
+      } @else {
+        <span class="goles vs">vs</span>
+      }
+      <span class="equipo equipo-visitante">{{ visitante()?.nombreEquipo ?? 'Por definir' }}</span>
+    </div>
+    <p class="estado-linea">
+      @if (p.estado === 'EN_JUEGO') {
+        <span class="vivo"><span class="punto" aria-hidden="true"></span> En vivo</span>
+      } @else {
+        <span [class]="'estado estado-' + p.estado.toLowerCase()">{{ etiquetaEstado(p.estado) }}</span>
+      }
+    </p>
+  </header>
+
+  @if (!esDueno()) {
+    <div class="aviso aviso-error" role="alert">
+      <p>Solo el organizador de este torneo puede modificar el partido.</p>
+      <a class="enlace" [routerLink]="['/torneos', p.idTorneo]">Ver página pública</a>
+    </div>
+  } @else if (transiciones().length > 0) {
+    <div class="control">
+      @if (errorEstado(); as texto) {
+        <p class="aviso aviso-error" role="alert">{{ texto }}</p>
+      }
+      @if (confirmando(); as destino) {
+        <div class="confirmacion" role="alert">
+          @if (destino === 'EN_JUEGO') {
+            <p>
+              Al iniciar, la alineación de los titulares queda fija. Se necesita árbitro central, los dos equipos y el torneo en curso.
+            </p>
+          } @else {
+            <p>Al finalizar ya no se podrán registrar ni borrar eventos, y el resultado cuenta en la tabla de posiciones.</p>
+          }
+          <div class="botones">
+            @for (t of transiciones(); track t.valor) {
+              @if (t.valor === destino) {
+                <button type="button" class="boton boton-peto" [disabled]="cambiando()" (click)="cambiarEstado(t)">
+                  {{ cambiando() ? 'Guardando…' : 'Sí, ' + t.texto.toLowerCase() }}
+                </button>
+              }
+            }
+            <button type="button" class="boton boton-borde" [disabled]="cambiando()" (click)="confirmando.set(null)">Cancelar</button>
+          </div>
+        </div>
+      } @else {
+        <div class="botones">
+          @for (t of transiciones(); track t.valor) {
+            <button type="button" [class]="t.valor === 'EN_JUEGO' || t.valor === 'FINALIZADO' ? 'boton boton-tinta' : 'boton boton-borde'"
+              [disabled]="cambiando()" (click)="pedir(t)">
+              {{ t.texto }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (torneo(); as t) {
+    @if (!local() || !visitante()) {
+      <p class="aviso">Este partido todavía no tiene sus dos equipos. Asígnalos desde la gestión del torneo.</p>
+    } @else {
+      <section class="seccion" aria-labelledby="titulo-alineacion">
+        <h2 id="titulo-alineacion">Alineación</h2>
+        <div class="dos-columnas">
+          <app-alineacion-equipo [partido]="p" [torneo]="t" [equipo]="local()!" [alineacion]="alineacion()"
+            [editable]="esDueno()" (cambio)="recargarAlineacion()" />
+          <app-alineacion-equipo [partido]="p" [torneo]="t" [equipo]="visitante()!" [alineacion]="alineacion()"
+            [editable]="esDueno()" (cambio)="recargarAlineacion()" />
+        </div>
+      </section>
+
+      <section class="seccion" aria-labelledby="titulo-eventos">
+        <h2 id="titulo-eventos">Eventos del partido</h2>
+        <app-eventos-partido [partido]="p" [local]="local()!" [visitante]="visitante()!" [alineacion]="alineacion()"
+          [editable]="esDueno()" (cambio)="recargarPartido()" />
+      </section>
+    }
+  }
+}

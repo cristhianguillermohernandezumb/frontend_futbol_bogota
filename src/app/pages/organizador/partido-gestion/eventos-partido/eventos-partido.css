@@ -1,0 +1,151 @@
+:host {
+  display: grid;
+  gap: 1rem;
+}
+
+.registro {
+  display: grid;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 6px;
+  background: var(--papel);
+}
+
+fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  margin-bottom: 0.4rem;
+  padding: 0;
+  font-weight: 600;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.95rem;
+  border: 1.5px solid var(--tinta);
+  border-radius: 999px;
+  background: transparent;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chip.activo {
+  background: var(--tinta);
+  color: var(--tiza);
+}
+
+.chip:has(input:focus-visible) {
+  outline: 3px solid var(--peto);
+  outline-offset: 2px;
+}
+
+.chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.vacio,
+.ayuda {
+  color: var(--texto-suave);
+}
+
+.linea {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evento {
+  display: grid;
+  grid-template-columns: 3rem 1.4rem 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.55rem 1rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 6px;
+  background: var(--papel);
+}
+
+.minuto {
+  font-family: var(--fuente-titulo);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.texto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.6rem;
+}
+
+.equipo {
+  color: var(--texto-suave);
+  font-size: 0.92rem;
+}
+
+.acciones {
+  display: flex;
+  gap: 0.4rem;
+}
+
+/* Iconos de evento hechos con CSS: balon, tarjetas */
+.tipo {
+  display: inline-block;
+  width: 1rem;
+  height: 1.4rem;
+  border-radius: 2px;
+}
+
+.tipo-gol,
+.tipo-autogol {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--tinta);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--tinta) 0 28%, #fff 30%);
+}
+
+.tipo-autogol {
+  border-color: var(--error);
+  background: radial-gradient(circle, var(--error) 0 28%, #fff 30%);
+}
+
+.tipo-amarilla {
+  background: #f5c400;
+}
+
+.tipo-roja {
+  background: #d3261b;
+}
+
+.tipo-falta {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--texto-suave);
+  background: repeating-linear-gradient(45deg, transparent 0 3px, var(--texto-suave) 3px 5px);
+}
+
+@media (max-width: 560px) {
+  .evento {
+    grid-template-columns: 3rem 1.4rem 1fr;
+  }
+
+  .evento > button,
+  .evento > .acciones {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}

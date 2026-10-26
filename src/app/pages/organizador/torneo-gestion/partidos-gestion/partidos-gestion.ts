@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 
 import { mensajeDeError } from '../../../../core/api-error';
@@ -46,7 +47,7 @@ const ETIQUETA_ESTADO: Record<EstadoPartido, string> = {
 
 @Component({
   selector: 'app-partidos-gestion',
-  imports: [ReactiveFormsModule, DatePipe, ArbitrosPartido],
+  imports: [ReactiveFormsModule, DatePipe, RouterLink, ArbitrosPartido],
   templateUrl: './partidos-gestion.html',
   styleUrl: './partidos-gestion.css',
 })

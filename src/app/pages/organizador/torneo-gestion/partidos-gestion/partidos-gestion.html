@@ -42,6 +42,9 @@
                 {{ t.texto }}
               </button>
             }
+            <a class="boton boton-tinta boton-chico" [routerLink]="['/organizador/partidos', p.idPartido]">
+              {{ p.estado === 'EN_JUEGO' ? 'Panel en vivo' : 'Alineación' }}
+            </a>
             <button type="button" class="boton boton-borde boton-chico" [attr.aria-expanded]="conArbitros() === p.idPartido"
               (click)="alternarArbitros(p.idPartido)">
               Árbitros

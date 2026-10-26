@@ -4,13 +4,17 @@ import { Observable, concat, last, switchMap } from 'rxjs';
 
 import { API_URL } from './config';
 import {
+  Alineacion,
   Arbitro,
   ArbitroAsignado,
   ArbitroRequest,
   Cancha,
   CanchaRequest,
   Equipo,
+  EquipoDePartido,
   EquipoInscrito,
+  EventoPartido,
+  EventoRequest,
   EquipoRequest,
   EstadoPartido,
   EstadoTorneo,
@@ -152,5 +156,65 @@ export class OrganizadorService {
 
   quitarArbitro(idPartido: number, idArbitro: number): Observable<void> {
     return this.http.delete<void>(`${API_URL}/partidos/${idPartido}/arbitros/${idArbitro}`);
+  }
+
+  // Partido: alineacion y eventos
+
+  partido(id: number): Observable<Partido> {
+    return this.http.get<Partido>(`${API_URL}/partidos/${id}`);
+  }
+
+  equiposDePartido(id: number): Observable<EquipoDePartido[]> {
+    return this.http.get<EquipoDePartido[]>(`${API_URL}/partidos/${id}/equipos`);
+  }
+
+  alineacion(idPartido: number): Observable<Alineacion[]> {
+    return this.http.get<Alineacion[]>(`${API_URL}/partidos/${idPartido}/alineacion`);
+  }
+
+  agregarAlineacion(idPartido: number, idEquipo: number, idJugador: number, titular: boolean): Observable<Alineacion> {
+    const params = new HttpParams().set('titular', titular ? 'S' : 'N');
+    return this.http.post<Alineacion>(
+      `${API_URL}/partidos/${idPartido}/equipos/${idEquipo}/alineacion/${idJugador}`,
+      null,
+      { params },
+    );
+  }
+
+  /** Cambia titular/suplente (antes de empezar) o los minutos jugados (con el partido en juego o terminado). */
+  actualizarAlineacion(
+    idPartido: number,
+    idEquipo: number,
+    idJugador: number,
+    cambios: { titular?: boolean; minutos?: number },
+  ): Observable<Alineacion> {
+    let params = new HttpParams();
+    if (cambios.titular !== undefined) {
+      params = params.set('titular', cambios.titular ? 'S' : 'N');
+    }
+    if (cambios.minutos !== undefined) {
+      params = params.set('minutos', cambios.minutos);
+    }
+    return this.http.patch<Alineacion>(
+      `${API_URL}/partidos/${idPartido}/equipos/${idEquipo}/alineacion/${idJugador}`,
+      null,
+      { params },
+    );
+  }
+
+  quitarAlineacion(idPartido: number, idEquipo: number, idJugador: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/partidos/${idPartido}/equipos/${idEquipo}/alineacion/${idJugador}`);
+  }
+
+  eventos(idPartido: number): Observable<EventoPartido[]> {
+    return this.http.get<EventoPartido[]>(`${API_URL}/partidos/${idPartido}/eventos`);
+  }
+
+  registrarEvento(datos: EventoRequest): Observable<EventoPartido> {
+    return this.http.post<EventoPartido>(`${API_URL}/eventos`, datos);
+  }
+
+  eliminarEvento(idEvento: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/eventos/${idEvento}`);
   }
 }

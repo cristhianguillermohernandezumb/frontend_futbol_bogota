@@ -1,0 +1,83 @@
+<div class="tarjeta">
+  <h3>
+    {{ equipo().nombreEquipo }}
+    <span class="rol">{{ equipo().rol === 'LOCAL' ? 'Local' : 'Visitante' }}</span>
+  </h3>
+  <p class="cupo" [class.lleno]="cupoLleno()">Titulares {{ titulares() }} de {{ maxTitulares() }}</p>
+
+  @if (mensaje(); as m) {
+    <p [class]="m.tipo === 'ok' ? 'aviso aviso-ok' : 'aviso aviso-error'" [attr.role]="m.tipo === 'ok' ? 'status' : 'alert'">
+      {{ m.texto }}
+    </p>
+  }
+
+  @if (mia().length === 0) {
+    <p class="vacio">Sin jugadores en la alineación todavía.</p>
+  } @else {
+    <ul class="lista">
+      @for (a of mia(); track a.idJugador) {
+        <li class="fila">
+          <span [class]="a.titular === 'S' ? 'insignia titular' : 'insignia'" [attr.title]="a.titular === 'S' ? 'Titular' : 'Suplente'">
+            {{ a.titular === 'S' ? 'T' : 'S' }}
+          </span>
+          <span class="nombre">{{ a.nombreJugador }}</span>
+
+          @if (editable()) {
+            <div class="acciones">
+              @if (sinEmpezar()) {
+                <button type="button" class="boton boton-borde boton-chico" [disabled]="trabajando() || (a.titular === 'N' && cupoLleno())"
+                  (click)="alternarTitular(a)">
+                  {{ a.titular === 'S' ? 'A suplente' : 'A titular' }}
+                </button>
+                <button type="button" class="boton boton-borde boton-chico" [disabled]="trabajando()" (click)="quitar(a)">Quitar</button>
+              } @else {
+                <label class="min">
+                  <span class="solo-lectores">Minutos jugados de {{ a.nombreJugador }}</span>
+                  <input type="number" min="0" max="120" [ngModel]="valorMinutos(a)" (ngModelChange)="editarMinutos(a, $event)" />
+                  <span aria-hidden="true">min</span>
+                </label>
+                @if (minutosCambiados(a)) {
+                  <button type="button" class="boton boton-tinta boton-chico" [disabled]="trabajando()" (click)="guardarMinutos(a)">
+                    Guardar
+                  </button>
+                }
+              }
+            </div>
+          } @else if (!sinEmpezar()) {
+            <span class="min-fijo">{{ a.minutosJugados }} min</span>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (editable() && !finalizado()) {
+    <div class="agregar">
+      @if (cargando()) {
+        <p class="vacio" role="status">Cargando plantilla…</p>
+      } @else if (plantilla().length === 0) {
+        <p class="vacio">Este equipo no tiene jugadores inscritos en el torneo.</p>
+      } @else if (disponibles().length === 0) {
+        <p class="vacio">Ya están todos los jugadores del equipo en la alineación.</p>
+      } @else {
+        <div class="grupo">
+          <label [for]="'jug-' + equipo().idEquipo">Agregar jugador</label>
+          <select [id]="'jug-' + equipo().idEquipo" [ngModel]="idElegido()" (ngModelChange)="idElegido.set($event)">
+            <option [ngValue]="0">Elige un jugador…</option>
+            @for (j of disponibles(); track j.idJugador) {
+              <option [ngValue]="j.idJugador">{{ j.numeroCamiseta }} · {{ j.nombreJugador }}</option>
+            }
+          </select>
+        </div>
+        <label class="casilla">
+          <input type="checkbox" [ngModel]="comoTitular() && !cupoLleno()" (ngModelChange)="comoTitular.set($event)" [disabled]="cupoLleno()" />
+          Como titular
+          @if (cupoLleno()) {
+            <span class="ayuda">(titulares completos)</span>
+          }
+        </label>
+        <button type="button" class="boton boton-tinta" [disabled]="trabajando()" (click)="agregar()">Agregar</button>
+      }
+    </div>
+  }
+</div>
