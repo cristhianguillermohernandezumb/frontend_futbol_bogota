@@ -42,6 +42,10 @@
                 {{ t.texto }}
               </button>
             }
+            <button type="button" class="boton boton-borde boton-chico" [attr.aria-expanded]="conArbitros() === p.idPartido"
+              (click)="alternarArbitros(p.idPartido)">
+              Árbitros
+            </button>
             @if (puedeEliminar(p)) {
               @if (eliminando() === p.idPartido) {
                 <button type="button" class="boton boton-peligro boton-chico" [disabled]="trabajando()" (click)="eliminar(p)">
@@ -53,6 +57,9 @@
               }
             }
           </div>
+          @if (conArbitros() === p.idPartido) {
+            <app-arbitros-partido [idPartido]="p.idPartido" [estadoPartido]="p.estado" />
+          }
         </li>
       }
     </ul>

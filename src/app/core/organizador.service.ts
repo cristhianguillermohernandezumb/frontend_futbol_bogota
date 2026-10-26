@@ -4,6 +4,9 @@ import { Observable, concat, last, switchMap } from 'rxjs';
 
 import { API_URL } from './config';
 import {
+  Arbitro,
+  ArbitroAsignado,
+  ArbitroRequest,
   Cancha,
   CanchaRequest,
   Equipo,
@@ -11,6 +14,7 @@ import {
   EquipoRequest,
   EstadoPartido,
   EstadoTorneo,
+  RolArbitro,
   Jugador,
   JugadorInscrito,
   JugadorRequest,
@@ -125,5 +129,28 @@ export class OrganizadorService {
 
   retirarJugador(idTorneo: number, idEquipo: number, idJugador: number): Observable<void> {
     return this.http.delete<void>(`${API_URL}/torneos/${idTorneo}/equipos/${idEquipo}/jugadores/${idJugador}`);
+  }
+
+  // Arbitros
+
+  arbitros(): Observable<Arbitro[]> {
+    return this.http.get<Arbitro[]>(`${API_URL}/arbitros`);
+  }
+
+  crearArbitro(datos: ArbitroRequest): Observable<Arbitro> {
+    return this.http.post<Arbitro>(`${API_URL}/arbitros`, datos);
+  }
+
+  arbitrosDePartido(idPartido: number): Observable<ArbitroAsignado[]> {
+    return this.http.get<ArbitroAsignado[]>(`${API_URL}/partidos/${idPartido}/arbitros`);
+  }
+
+  asignarArbitro(idPartido: number, idArbitro: number, rol: RolArbitro): Observable<ArbitroAsignado> {
+    const params = new HttpParams().set('rol', rol);
+    return this.http.post<ArbitroAsignado>(`${API_URL}/partidos/${idPartido}/arbitros/${idArbitro}`, null, { params });
+  }
+
+  quitarArbitro(idPartido: number, idArbitro: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/partidos/${idPartido}/arbitros/${idArbitro}`);
   }
 }

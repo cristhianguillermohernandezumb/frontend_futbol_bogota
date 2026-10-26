@@ -14,6 +14,7 @@ import {
 } from '../../../../core/models';
 import { OrganizadorService } from '../../../../core/organizador.service';
 import { TorneoService } from '../../../../core/torneo.service';
+import { ArbitrosPartido } from '../arbitros-partido/arbitros-partido';
 
 interface Mensaje {
   tipo: 'ok' | 'error';
@@ -45,7 +46,7 @@ const ETIQUETA_ESTADO: Record<EstadoPartido, string> = {
 
 @Component({
   selector: 'app-partidos-gestion',
-  imports: [ReactiveFormsModule, DatePipe],
+  imports: [ReactiveFormsModule, DatePipe, ArbitrosPartido],
   templateUrl: './partidos-gestion.html',
   styleUrl: './partidos-gestion.css',
 })
@@ -64,6 +65,8 @@ export class PartidosGestion implements OnInit {
   protected readonly mensaje = signal<Mensaje | null>(null);
   protected readonly trabajando = signal(false);
   protected readonly eliminando = signal<number | null>(null);
+  /** Partido cuyo panel de arbitros esta abierto. */
+  protected readonly conArbitros = signal<number | null>(null);
 
   protected readonly puedeProgramar = computed(() => this.torneo().estado !== 'FINALIZADO');
   protected readonly ordenados = computed(() =>
@@ -225,6 +228,11 @@ export class PartidosGestion implements OnInit {
   protected eliminar(p: PartidoConEquipos): void {
     this.eliminando.set(null);
     this.ejecutar(this.organizador.eliminarPartido(p.idPartido), 'Partido eliminado.');
+  }
+
+  protected alternarArbitros(id: number): void {
+    this.mensaje.set(null);
+    this.conArbitros.set(this.conArbitros() === id ? null : id);
   }
 
   protected transiciones(p: PartidoConEquipos): Transicion[] {

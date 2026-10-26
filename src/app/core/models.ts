@@ -203,6 +203,34 @@ export interface JugadorInscrito {
   numeroCamiseta: number;
 }
 
+export type RolArbitro = 'CENTRAL' | 'ASISTENTE_1' | 'ASISTENTE_2' | 'CUARTO' | 'VAR';
+
+export interface ArbitroRequest {
+  documento: string;
+  tipoDocumento: TipoDocumento;
+  primerNombre: string;
+  segundoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  fechaNacimiento: string;
+  numeroLicencia: number;
+  nacionalidad: string;
+  estado: 'ACTIVO' | 'INACTIVO';
+  correos: string[];
+  telefonos: string[];
+}
+
+export interface Arbitro extends ArbitroRequest {
+  idArbitro: number;
+}
+
+export interface ArbitroAsignado {
+  idPartido: number;
+  idArbitro: number;
+  nombreArbitro: string;
+  rol: RolArbitro;
+}
+
 /** Formato de error que devuelve el backend (GlobalExceptionHandler). */
 export interface ErrorApi {
   fecha: string;

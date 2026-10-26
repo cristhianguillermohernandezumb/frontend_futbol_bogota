@@ -1,0 +1,72 @@
+:host {
+  display: block;
+}
+
+.caja {
+  display: grid;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-top: 1.5px dashed var(--linea);
+}
+
+h4 {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-size: 1.3rem;
+}
+
+.vacio {
+  color: var(--texto-suave);
+  font-size: 0.95rem;
+}
+
+.lista {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: 9rem 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.rol {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.fila-form {
+  grid-template-columns: 1fr 12rem auto;
+  align-items: end;
+}
+
+.nuevo {
+  padding-top: 0.75rem;
+  border-top: 1.5px solid var(--linea);
+}
+
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.enlace {
+  justify-self: start;
+}
+
+@media (max-width: 700px) {
+  .fila,
+  .fila-form {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+}
