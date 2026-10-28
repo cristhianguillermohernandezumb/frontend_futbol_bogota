@@ -5,9 +5,11 @@ import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
 import { API_URL } from './config';
 import {
   EquipoDePartido,
+  EntrenadorPublico,
   EquipoInscrito,
   EstadoTorneo,
   Goleador,
+  JugadorInscrito,
   Partido,
   PartidoConEquipos,
   Posicion,
@@ -30,6 +32,16 @@ export class TorneoService {
 
   equipos(id: number): Observable<EquipoInscrito[]> {
     return this.http.get<EquipoInscrito[]>(`${API_URL}/torneos/${id}/equipos`);
+  }
+
+  /** Plantilla de un equipo en el torneo (consulta publica). */
+  jugadoresDeEquipo(idTorneo: number, idEquipo: number): Observable<JugadorInscrito[]> {
+    return this.http.get<JugadorInscrito[]>(`${API_URL}/torneos/${idTorneo}/equipos/${idEquipo}/jugadores`);
+  }
+
+  /** Entrenadores del equipo, solo datos publicos. */
+  entrenadoresDeEquipo(idTorneo: number, idEquipo: number): Observable<EntrenadorPublico[]> {
+    return this.http.get<EntrenadorPublico[]>(`${API_URL}/torneos/${idTorneo}/equipos/${idEquipo}/entrenadores`);
   }
 
   posiciones(id: number): Observable<Posicion[]> {

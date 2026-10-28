@@ -7,11 +7,12 @@ import { AuthService } from '../../../core/auth.service';
 import { EstadoTorneo, Modalidad, Torneo } from '../../../core/models';
 import { OrganizadorService } from '../../../core/organizador.service';
 import { TorneoService } from '../../../core/torneo.service';
+import { EntrenadoresGestion } from './entrenadores-gestion/entrenadores-gestion';
 import { EquiposGestion } from './equipos-gestion/equipos-gestion';
 import { JugadoresGestion } from './jugadores-gestion/jugadores-gestion';
 import { PartidosGestion } from './partidos-gestion/partidos-gestion';
 
-type Pestana = 'resumen' | 'equipos' | 'jugadores' | 'partidos';
+type Pestana = 'resumen' | 'equipos' | 'jugadores' | 'entrenadores' | 'partidos';
 
 const NUMERAL: Record<Modalidad, string> = { FUTBOL_5: '5v5', FUTBOL_7: '7v7', FUTBOL_8: '8v8', FUTBOL_11: '11v11' };
 
@@ -38,7 +39,7 @@ const SIGUIENTE: Record<EstadoTorneo, { valor: EstadoTorneo; boton: string; avis
 
 @Component({
   selector: 'app-torneo-gestion',
-  imports: [RouterLink, DatePipe, CurrencyPipe, EquiposGestion, JugadoresGestion, PartidosGestion],
+  imports: [RouterLink, DatePipe, CurrencyPipe, EquiposGestion, JugadoresGestion, EntrenadoresGestion, PartidosGestion],
   templateUrl: './torneo-gestion.html',
   styleUrl: './torneo-gestion.css',
 })
@@ -52,6 +53,7 @@ export class TorneoGestion implements OnInit {
     { id: 'resumen', texto: 'Resumen' },
     { id: 'equipos', texto: 'Equipos' },
     { id: 'jugadores', texto: 'Jugadores' },
+    { id: 'entrenadores', texto: 'Entrenadores' },
     { id: 'partidos', texto: 'Partidos' },
   ];
 

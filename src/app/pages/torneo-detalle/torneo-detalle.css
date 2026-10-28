@@ -233,9 +233,36 @@
   font-size: 0.95rem;
 }
 
+.equipo-tarjeta {
+  position: relative;
+}
+
+.equipo-tarjeta:hover {
+  border-color: var(--tinta);
+}
+
 .equipo-tarjeta h3 {
   color: var(--tinta);
   font-size: 1.5rem;
+}
+
+/* Toda la tarjeta es clicable: el enlace se estira sobre ella. */
+.equipo-enlace {
+  color: inherit;
+  text-decoration: none;
+}
+
+.equipo-enlace::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.equipo-ver {
+  margin-top: 0.3rem;
+  color: var(--tinta);
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .solo-lectores {

@@ -1,0 +1,48 @@
+<a class="volver" [routerLink]="['/torneos', idTorneo]" [queryParams]="{ pestana: 'equipos' }">← Volver al torneo</a>
+
+@if (cargando()) {
+  <p class="mensaje" role="status">Cargando equipo…</p>
+} @else if (error(); as mensaje) {
+  <div class="aviso aviso-error" role="alert">
+    <p>{{ mensaje }}</p>
+    <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+  </div>
+} @else if (equipo(); as e) {
+  <header class="cabecera cancha-fondo">
+    <p class="torneo">{{ e.nombreTorneo }}</p>
+    <h1>{{ e.nombreEquipo }}</h1>
+    <p class="resumen">{{ plantilla().length }} {{ plantilla().length === 1 ? 'jugador' : 'jugadores' }}</p>
+  </header>
+
+  <section aria-labelledby="titulo-tecnico">
+    <h2 id="titulo-tecnico">{{ entrenadores().length > 1 ? 'Cuerpo técnico' : 'Entrenador' }}</h2>
+    @if (entrenadores().length === 0) {
+      <p class="mensaje">Este equipo aún no tiene entrenador registrado.</p>
+    } @else {
+      <ul class="tecnico">
+        @for (t of entrenadores(); track t.idEntrenador) {
+          <li class="tarjeta">
+            <strong>{{ nombre(t) }}</strong>
+            <span>{{ t.aniosExperiencia }} {{ t.aniosExperiencia === 1 ? 'año' : 'años' }} de experiencia · {{ t.nacionalidad }}</span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section aria-labelledby="titulo-plantilla">
+    <h2 id="titulo-plantilla">Plantilla</h2>
+    @if (plantilla().length === 0) {
+      <p class="mensaje">Todavía no hay jugadores inscritos en este equipo.</p>
+    } @else {
+      <ul class="plantilla">
+        @for (j of plantilla(); track j.idJugador) {
+          <li class="jugador">
+            <span class="camiseta" aria-label="Camiseta">{{ j.numeroCamiseta }}</span>
+            <span class="nombre">{{ j.nombreJugador }}</span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}

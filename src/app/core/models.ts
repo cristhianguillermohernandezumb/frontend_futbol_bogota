@@ -298,6 +298,49 @@ export interface AuditoriaRegistro {
   idTorneo: number | null;
 }
 
+export interface Entrenador {
+  idEntrenador: number;
+  documento: string;
+  tipoDocumento: TipoDocumento;
+  primerNombre: string;
+  segundoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  fechaNacimiento: string;
+  aniosExperiencia: number;
+  nacionalidad: string;
+  idEquipo: number;
+  nombreEquipo: string;
+  correos: string[];
+  telefonos: string[];
+}
+
+export interface EntrenadorRequest {
+  documento: string;
+  tipoDocumento: TipoDocumento;
+  primerNombre: string;
+  segundoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  fechaNacimiento: string;
+  aniosExperiencia: number;
+  nacionalidad: string;
+  idEquipo: number;
+  correos: string[];
+  telefonos: string[];
+}
+
+/** Lo que cualquier visitante puede ver de un entrenador (sin documento ni contacto). */
+export interface EntrenadorPublico {
+  idEntrenador: number;
+  primerNombre: string;
+  segundoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  aniosExperiencia: number;
+  nacionalidad: string;
+}
+
 /** Formato de error que devuelve el backend (GlobalExceptionHandler). */
 export interface ErrorApi {
   fecha: string;

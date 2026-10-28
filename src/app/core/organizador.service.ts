@@ -19,6 +19,8 @@ import {
   EstadoPartido,
   EstadoTorneo,
   RolArbitro,
+  Entrenador,
+  EntrenadorRequest,
   Jugador,
   JugadorInscrito,
   JugadorRequest,
@@ -133,6 +135,21 @@ export class OrganizadorService {
 
   retirarJugador(idTorneo: number, idEquipo: number, idJugador: number): Observable<void> {
     return this.http.delete<void>(`${API_URL}/torneos/${idTorneo}/equipos/${idEquipo}/jugadores/${idJugador}`);
+  }
+
+  // Entrenadores (pertenecen a un equipo)
+
+  entrenadoresDeEquipo(idEquipo: number): Observable<Entrenador[]> {
+    const params = new HttpParams().set('idEquipo', idEquipo);
+    return this.http.get<Entrenador[]>(`${API_URL}/entrenadores`, { params });
+  }
+
+  crearEntrenador(datos: EntrenadorRequest): Observable<Entrenador> {
+    return this.http.post<Entrenador>(`${API_URL}/entrenadores`, datos);
+  }
+
+  eliminarEntrenador(idEntrenador: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/entrenadores/${idEntrenador}`);
   }
 
   // Arbitros

@@ -1,0 +1,80 @@
+:host {
+  display: grid;
+  gap: 1rem;
+}
+
+h2 {
+  font-size: 1.6rem;
+}
+
+.vacio,
+.nota,
+.detalle {
+  color: var(--texto-suave);
+}
+
+.nota {
+  margin: -0.5rem 0 0;
+  font-size: 0.9rem;
+}
+
+.selector {
+  max-width: 22rem;
+}
+
+.lista {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.9rem;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 6px;
+  background: var(--papel);
+}
+
+.datos {
+  display: grid;
+  gap: 0.1rem;
+  overflow-wrap: anywhere;
+}
+
+.detalle {
+  font-size: 0.9rem;
+}
+
+.acciones,
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bloque {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  margin-top: 0.5rem;
+  padding: 1.1rem 1.25rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 6px;
+  background: var(--papel);
+}
+
+.bloque .formulario {
+  width: 100%;
+}
+
+@media (max-width: 700px) {
+  .fila {
+    grid-template-columns: 1fr;
+  }
+}

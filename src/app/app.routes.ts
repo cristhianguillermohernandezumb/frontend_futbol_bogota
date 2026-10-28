@@ -12,6 +12,11 @@ export const routes: Routes = [
     title: 'Torneo',
   },
   {
+    path: 'torneos/:id/equipos/:idEquipo',
+    loadComponent: () => import('./pages/equipo-detalle/equipo-detalle').then((m) => m.EquipoDetalle),
+    title: 'Equipo',
+  },
+  {
     path: 'organizador',
     canActivate: [organizador],
     loadComponent: () => import('./pages/organizador/panel/panel').then((m) => m.Panel),

@@ -103,6 +103,11 @@ export class TorneoDetalle implements OnInit {
   private id = 0;
 
   ngOnInit(): void {
+    // Permite volver directamente a una pestana (por ejemplo desde la pagina de un equipo): /torneos/1?pestana=equipos
+    const pedida = this.ruta.snapshot.queryParamMap.get('pestana');
+    if (pedida && this.pestanas.some((p) => p.id === pedida)) {
+      this.pestana.set(pedida as Pestana);
+    }
     this.ruta.paramMap.subscribe((params) => {
       this.id = Number(params.get('id'));
       this.cargarTodo();

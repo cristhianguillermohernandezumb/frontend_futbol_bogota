@@ -1,0 +1,160 @@
+@if (mensaje(); as m) {
+  <p [class]="m.tipo === 'ok' ? 'aviso aviso-ok' : 'aviso aviso-error'" [attr.role]="m.tipo === 'ok' ? 'status' : 'alert'">
+    {{ m.texto }}
+  </p>
+}
+
+@if (cargando()) {
+  <p class="vacio" role="status">Cargando equipos…</p>
+} @else if (errorCarga(); as texto) {
+  <div class="aviso aviso-error" role="alert">
+    <p>{{ texto }}</p>
+    <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+  </div>
+} @else if (equipos().length === 0) {
+  <p class="aviso">Primero inscribe equipos en la pestaña "Equipos"; luego podrás inscribir a sus entrenadores.</p>
+} @else {
+  <div class="selector grupo">
+    <label for="equipo-e">Equipo</label>
+    <select id="equipo-e" (change)="elegirEquipo($any($event.target).value)">
+      @for (e of equipos(); track e.idEquipo) {
+        <option [value]="e.idEquipo" [selected]="e.idEquipo === equipoId()">{{ e.nombreEquipo }}</option>
+      }
+    </select>
+  </div>
+
+  <h2>Cuerpo técnico de {{ nombreEquipo() }}</h2>
+  <p class="nota">El entrenador pertenece al equipo, así que lo verás igual en todos los torneos donde juegue.</p>
+
+  @if (cargandoLista()) {
+    <p class="vacio" role="status">Cargando entrenadores…</p>
+  } @else if (entrenadores().length === 0) {
+    <p class="vacio">Este equipo aún no tiene entrenador.</p>
+  } @else {
+    <ul class="lista">
+      @for (e of entrenadores(); track e.idEntrenador) {
+        <li class="fila">
+          <div class="datos">
+            <strong>{{ nombre(e) }}</strong>
+            <span class="detalle">
+              {{ e.aniosExperiencia }} {{ e.aniosExperiencia === 1 ? 'año' : 'años' }} de experiencia · {{ e.nacionalidad }} ·
+              {{ e.tipoDocumento }} {{ e.documento }}
+            </span>
+            @if (e.correos.length > 0 || e.telefonos.length > 0) {
+              <span class="detalle">{{ e.correos.concat(e.telefonos).join(' · ') }}</span>
+            }
+          </div>
+          @if (puedeModificar()) {
+            <div class="acciones">
+              @if (quitando() === e.idEntrenador) {
+                <button type="button" class="boton boton-peligro boton-chico" [disabled]="trabajando()" (click)="quitar(e)">
+                  Confirmar
+                </button>
+                <button type="button" class="boton boton-borde boton-chico" (click)="quitando.set(null)">No</button>
+              } @else {
+                <button type="button" class="boton boton-borde boton-chico" (click)="quitando.set(e.idEntrenador)">Quitar</button>
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (!puedeModificar()) {
+    <p class="aviso">El torneo finalizó: ya no se puede modificar el cuerpo técnico.</p>
+  } @else {
+    <div class="bloque">
+      <h2>Inscribir entrenador en {{ nombreEquipo() }}</h2>
+
+      @if (!abierto()) {
+        <button type="button" class="boton boton-tinta" (click)="abrir()">Inscribir entrenador</button>
+      } @else {
+        <form class="formulario" [formGroup]="form" (ngSubmit)="inscribir()" novalidate>
+          <div class="rejilla">
+            <div class="grupo">
+              <label for="tipoDocE">Tipo de documento</label>
+              <select id="tipoDocE" formControlName="tipoDocumento">
+                @for (t of tipos; track t) {
+                  <option [value]="t">{{ t }}</option>
+                }
+              </select>
+            </div>
+            <div class="grupo">
+              <label for="documentoE">Número de documento</label>
+              <input id="documentoE" type="text" formControlName="documento" maxlength="50" [attr.aria-invalid]="invalido('documento')" />
+              @if (invalido('documento')) {
+                <p class="error-campo">Escribe el documento.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="primerNombreE">Primer nombre</label>
+              <input id="primerNombreE" type="text" formControlName="primerNombre" maxlength="50"
+                [attr.aria-invalid]="invalido('primerNombre')" />
+              @if (invalido('primerNombre')) {
+                <p class="error-campo">Escribe el primer nombre.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="segundoNombreE">Segundo nombre <span class="ayuda">(opcional)</span></label>
+              <input id="segundoNombreE" type="text" formControlName="segundoNombre" maxlength="50" />
+            </div>
+            <div class="grupo">
+              <label for="primerApellidoE">Primer apellido</label>
+              <input id="primerApellidoE" type="text" formControlName="primerApellido" maxlength="50"
+                [attr.aria-invalid]="invalido('primerApellido')" />
+              @if (invalido('primerApellido')) {
+                <p class="error-campo">Escribe el primer apellido.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="segundoApellidoE">Segundo apellido <span class="ayuda">(opcional)</span></label>
+              <input id="segundoApellidoE" type="text" formControlName="segundoApellido" maxlength="50" />
+            </div>
+            <div class="grupo">
+              <label for="fechaNacimientoE">Fecha de nacimiento</label>
+              <input id="fechaNacimientoE" type="date" formControlName="fechaNacimiento" [max]="hoy"
+                [attr.aria-invalid]="invalido('fechaNacimiento')" />
+              @if (invalido('fechaNacimiento')) {
+                <p class="error-campo">Elige una fecha pasada.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="aniosE">Años de experiencia</label>
+              <input id="aniosE" type="number" formControlName="aniosExperiencia" min="0" max="70"
+                [attr.aria-invalid]="invalido('aniosExperiencia')" />
+              @if (invalido('aniosExperiencia')) {
+                <p class="error-campo">Un número de 0 a 70.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="nacionalidadE">Nacionalidad</label>
+              <input id="nacionalidadE" type="text" formControlName="nacionalidad" maxlength="50"
+                [attr.aria-invalid]="invalido('nacionalidad')" />
+            </div>
+            <div class="grupo">
+              <label for="correoE">Correo <span class="ayuda">(opcional)</span></label>
+              <input id="correoE" type="email" formControlName="correo" [attr.aria-invalid]="invalido('correo')" />
+              @if (invalido('correo')) {
+                <p class="error-campo">Escribe un correo válido.</p>
+              }
+            </div>
+            <div class="grupo">
+              <label for="telefonoE">Teléfono <span class="ayuda">(opcional)</span></label>
+              <input id="telefonoE" type="tel" formControlName="telefono" inputmode="numeric" [attr.aria-invalid]="invalido('telefono')" />
+              @if (invalido('telefono')) {
+                <p class="error-campo">Solo números (7 a 20 dígitos).</p>
+              }
+            </div>
+          </div>
+          <div class="botones">
+            <button type="submit" class="boton boton-peto" [disabled]="trabajando()">
+              {{ trabajando() ? 'Guardando…' : 'Inscribir' }}
+            </button>
+            <button type="button" class="boton boton-borde" (click)="abierto.set(false)">Cancelar</button>
+          </div>
+        </form>
+      }
+    </div>
+  }
+}
