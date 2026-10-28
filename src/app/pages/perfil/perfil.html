@@ -1,0 +1,81 @@
+<section class="pagina">
+  <h1>Mi perfil</h1>
+
+  @if (cargando()) {
+    <p class="mensaje" role="status">Cargando…</p>
+  } @else if (error(); as texto) {
+    <div class="aviso aviso-error" role="alert">
+      <p>{{ texto }}</p>
+      <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else if (usuario(); as u) {
+    <p class="datos">
+      <span class="rol">{{ etiquetaRol(u.rol) }}</span>
+      <span>Miembro desde el {{ u.fechaRegistro | date: 'd MMM y' }}</span>
+    </p>
+
+    @if (guardado()) {
+      <p class="aviso aviso-ok" role="status">Perfil actualizado.</p>
+    }
+    @if (errorGuardar(); as texto) {
+      <p class="aviso aviso-error" role="alert">{{ texto }}</p>
+    }
+
+    <form class="formulario" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+      <div class="rejilla">
+        <div class="grupo">
+          <label for="primerNombre">Primer nombre</label>
+          <input id="primerNombre" type="text" formControlName="primerNombre" maxlength="50" [attr.aria-invalid]="invalido('primerNombre')" />
+          @if (invalido('primerNombre')) {
+            <p class="error-campo">Escribe tu primer nombre.</p>
+          }
+        </div>
+        <div class="grupo">
+          <label for="segundoNombre">Segundo nombre <span class="ayuda">(opcional)</span></label>
+          <input id="segundoNombre" type="text" formControlName="segundoNombre" maxlength="50" />
+        </div>
+        <div class="grupo">
+          <label for="primerApellido">Primer apellido</label>
+          <input id="primerApellido" type="text" formControlName="primerApellido" maxlength="50" [attr.aria-invalid]="invalido('primerApellido')" />
+          @if (invalido('primerApellido')) {
+            <p class="error-campo">Escribe tu primer apellido.</p>
+          }
+        </div>
+        <div class="grupo">
+          <label for="segundoApellido">Segundo apellido <span class="ayuda">(opcional)</span></label>
+          <input id="segundoApellido" type="text" formControlName="segundoApellido" maxlength="50" />
+        </div>
+      </div>
+
+      <div class="grupo">
+        <label for="correo">Correo</label>
+        <input id="correo" type="email" formControlName="correo" autocomplete="email" [attr.aria-invalid]="invalido('correo')" />
+        @if (invalido('correo')) {
+          <p class="error-campo">Escribe un correo válido.</p>
+        }
+      </div>
+
+      <div class="grupo">
+        <label for="telefono">Teléfono <span class="ayuda">(opcional)</span></label>
+        <input id="telefono" type="tel" formControlName="telefono" inputmode="numeric" [attr.aria-invalid]="invalido('telefono')" />
+        @if (invalido('telefono')) {
+          <p class="error-campo">Solo números (7 a 15 dígitos).</p>
+        }
+      </div>
+
+      <div class="grupo">
+        <label for="contrasenia">Nueva contraseña <span class="ayuda">(déjala vacía para conservar la actual)</span></label>
+        <input id="contrasenia" type="password" formControlName="contrasenia" autocomplete="new-password" [attr.aria-invalid]="invalido('contrasenia')" />
+        @if (invalido('contrasenia')) {
+          <p class="error-campo">Mínimo 8 caracteres (máximo 72).</p>
+        }
+      </div>
+
+      <div>
+        <button type="submit" class="boton boton-peto" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

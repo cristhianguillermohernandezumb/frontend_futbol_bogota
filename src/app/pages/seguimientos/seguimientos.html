@@ -1,0 +1,47 @@
+<section class="pagina">
+  <h1>Torneos que sigues</h1>
+  <p class="sub">Ve rápido cómo van los torneos que te interesan.</p>
+
+  @if (errorAccion(); as texto) {
+    <p class="aviso aviso-error" role="alert">{{ texto }}</p>
+  }
+
+  @if (cargando()) {
+    <p class="mensaje" role="status">Cargando…</p>
+  } @else if (error(); as texto) {
+    <div class="aviso aviso-error" role="alert">
+      <p>{{ texto }}</p>
+      <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else if (lista().length === 0) {
+    <div class="vacio">
+      <p>Todavía no sigues ningún torneo.</p>
+      <a class="boton boton-tinta" routerLink="/" fragment="torneos">Buscar torneos</a>
+    </div>
+  } @else {
+    <ul class="lista">
+      @for (s of lista(); track s.idTorneo) {
+        <li class="fila">
+          <div class="datos">
+            <h2><a [routerLink]="['/torneos', s.idTorneo]">{{ s.nombreTorneo }}</a></h2>
+            <p class="detalle">Lo sigues desde el {{ s.fechaSeguimiento | date: 'd MMM y' }}</p>
+          </div>
+          <label class="interruptor">
+            <input type="checkbox" [checked]="s.notificacion === 'S'" [disabled]="trabajando() === s.idTorneo" (change)="cambiarAvisos(s)" />
+            Avisos
+          </label>
+          <div class="acciones">
+            @if (confirmando() === s.idTorneo) {
+              <button type="button" class="boton boton-peligro boton-chico" [disabled]="trabajando() === s.idTorneo" (click)="dejar(s)">
+                Confirmar
+              </button>
+              <button type="button" class="boton boton-borde boton-chico" (click)="confirmando.set(null)">No</button>
+            } @else {
+              <button type="button" class="boton boton-borde boton-chico" (click)="confirmando.set(s.idTorneo)">Dejar de seguir</button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

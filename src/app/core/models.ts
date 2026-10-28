@@ -90,6 +90,8 @@ export interface EquipoDePartido {
 export interface PartidoConEquipos extends Partido {
   local: string | null;
   visitante: string | null;
+  idLocal: number | null;
+  idVisitante: number | null;
 }
 
 export interface Posicion {
@@ -262,6 +264,26 @@ export interface EventoRequest {
   idEquipo: number;
   idTorneo: number;
   idJugador: number;
+}
+
+export interface Seguimiento {
+  idTorneo: number;
+  nombreTorneo: string;
+  idUsuario: number;
+  fechaSeguimiento: string;
+  /** S = quiere recibir avisos, N = no. */
+  notificacion: 'S' | 'N';
+}
+
+export interface PerfilRequest {
+  primerNombre: string;
+  segundoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  telefono: number | null;
+  correo: string;
+  /** Opcional: si no se envia, se conserva la contrasena actual. */
+  contrasenia?: string;
 }
 
 /** Formato de error que devuelve el backend (GlobalExceptionHandler). */

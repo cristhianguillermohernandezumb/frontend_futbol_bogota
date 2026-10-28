@@ -1,11 +1,16 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Observable } from 'rxjs';
 
 import { mensajeDeError } from '../../core/api-error';
+import { AuthService } from '../../core/auth.service';
+import { EspectadorService } from '../../core/espectador.service';
 import {
   EquipoInscrito,
   EstadoPartido,
+  EventoPartido,
+  TipoEvento,
   EstadoTorneo,
   Goleador,
   Modalidad,
@@ -57,6 +62,8 @@ function inicial<T>(datos: T): Seccion<T> {
 export class TorneoDetalle implements OnInit {
   private readonly ruta = inject(ActivatedRoute);
   private readonly torneoService = inject(TorneoService);
+  private readonly espectador = inject(EspectadorService);
+  protected readonly auth = inject(AuthService);
 
   protected readonly pestanas: { id: Pestana; texto: string }[] = [
     { id: 'posiciones', texto: 'Posiciones' },
@@ -84,6 +91,15 @@ export class TorneoDetalle implements OnInit {
       .map(([jornada, lista]) => ({ jornada, partidos: lista }));
   });
 
+  /** null mientras se consulta (o si no hay sesion). */
+  protected readonly siguiendo = signal<boolean | null>(null);
+  protected readonly trabajandoSeguir = signal(false);
+  protected readonly errorSeguir = signal<string | null>(null);
+
+  /** Partido con el panel de eventos abierto y los eventos ya pedidos de cada partido. */
+  protected readonly abierto = signal<number | null>(null);
+  protected readonly eventosDe = signal<Record<number, Seccion<EventoPartido[]>>>({});
+
   private id = 0;
 
   ngOnInit(): void {
@@ -99,6 +115,7 @@ export class TorneoDetalle implements OnInit {
       return;
     }
     this.cargarTorneo();
+    this.cargarSeguimiento();
     this.cargarPosiciones();
     this.cargarPartidos();
     this.cargarEquipos();
@@ -113,6 +130,81 @@ export class TorneoDetalle implements OnInit {
       error: (err: unknown) =>
         id === this.id && this.torneo.set({ cargando: false, error: mensajeDeError(err), datos: null }),
     });
+  }
+
+  protected cargarSeguimiento(): void {
+    const id = this.id;
+    const usuario = this.auth.usuario();
+    this.siguiendo.set(null);
+    this.errorSeguir.set(null);
+    this.abierto.set(null);
+    this.eventosDe.set({});
+    if (!usuario) {
+      return;
+    }
+    this.espectador.seguimientos(usuario.idUsuario).subscribe({
+      next: (lista) => id === this.id && this.siguiendo.set(lista.some((s) => s.idTorneo === id)),
+      // Si falla la consulta, el boton simplemente no aparece: ver el torneo no depende de esto.
+      error: () => id === this.id && this.siguiendo.set(null),
+    });
+  }
+
+  protected alternarSeguir(): void {
+    const usuario = this.auth.usuario();
+    const id = this.id;
+    const sigue = this.siguiendo();
+    if (!usuario || sigue === null) {
+      return;
+    }
+    this.trabajandoSeguir.set(true);
+    this.errorSeguir.set(null);
+    const accion: Observable<unknown> = sigue ? this.espectador.dejarDeSeguir(usuario.idUsuario, id) : this.espectador.seguir(usuario.idUsuario, id);
+    accion.subscribe({
+      next: () => {
+        this.siguiendo.set(!sigue);
+        this.trabajandoSeguir.set(false);
+      },
+      error: (err: unknown) => {
+        this.errorSeguir.set(mensajeDeError(err));
+        this.trabajandoSeguir.set(false);
+      },
+    });
+  }
+
+  protected alternarEventos(p: PartidoConEquipos): void {
+    if (this.abierto() === p.idPartido) {
+      this.abierto.set(null);
+      return;
+    }
+    this.abierto.set(p.idPartido);
+    if (!this.eventosDe()[p.idPartido] || this.eventosDe()[p.idPartido].error) {
+      this.pedirEventos(p.idPartido);
+    }
+  }
+
+  protected pedirEventos(idPartido: number): void {
+    this.eventosDe.update((m) => ({ ...m, [idPartido]: inicial<EventoPartido[]>([]) }));
+    this.espectador.eventos(idPartido).subscribe({
+      next: (datos) =>
+        this.eventosDe.update((m) => ({
+          ...m,
+          [idPartido]: { cargando: false, error: null, datos: [...datos].sort((a, b) => a.minuto - b.minuto || a.idEvento - b.idEvento) },
+        })),
+      error: (err: unknown) =>
+        this.eventosDe.update((m) => ({ ...m, [idPartido]: { cargando: false, error: mensajeDeError(err), datos: [] } })),
+    });
+  }
+
+  protected nombreEquipoEvento(p: PartidoConEquipos, e: EventoPartido): string {
+    return e.idEquipo === p.idLocal ? (p.local ?? '') : e.idEquipo === p.idVisitante ? (p.visitante ?? '') : '';
+  }
+
+  protected etiquetaEvento(t: TipoEvento): string {
+    return { GOL: 'Gol', AUTOGOL: 'Autogol', AMARILLA: 'Tarjeta amarilla', ROJA: 'Tarjeta roja', FALTA: 'Falta' }[t];
+  }
+
+  protected claseEvento(t: TipoEvento): string {
+    return `ev-icono ev-${t.toLowerCase()}`;
   }
 
   protected cargarPosiciones(): void {

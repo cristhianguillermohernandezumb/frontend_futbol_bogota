@@ -13,10 +13,11 @@
       @if (auth.tieneRol('ORGANIZADOR', 'ADMIN')) {
         <a class="enlace" routerLink="/organizador">Mis torneos</a>
       }
-      <span class="sesion">
+      <a class="enlace" routerLink="/seguimientos">Seguidos</a>
+      <a class="sesion" routerLink="/perfil" title="Mi perfil">
         <span class="sesion-nombre">{{ usuario.primerNombre }}</span>
         <span class="sesion-rol">{{ etiquetaRol(usuario.rol) }}</span>
-      </span>
+      </a>
       <button type="button" class="enlace" (click)="auth.cerrarSesion()">Cerrar sesión</button>
     } @else {
       <a class="enlace" routerLink="/login">Ingresar</a>

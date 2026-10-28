@@ -1,0 +1,32 @@
+.pagina {
+  display: grid;
+  gap: 1.1rem;
+  width: min(100%, 40rem);
+  margin: 0 auto;
+  padding: 2rem clamp(1rem, 4vw, 2.5rem) 4rem;
+}
+
+.pagina h1 {
+  font-size: 2.6rem;
+}
+
+.mensaje {
+  color: var(--texto-suave);
+}
+
+.datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  color: var(--texto-suave);
+}
+
+.rol {
+  padding: 0.15rem 0.6rem;
+  border-radius: 3px;
+  background: #d3ebdd;
+  color: var(--cancha-oscura);
+  font-size: 0.9rem;
+  font-weight: 600;
+}

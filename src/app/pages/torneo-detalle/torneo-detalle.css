@@ -257,3 +257,84 @@
     font-size: 0.95rem;
   }
 }
+
+.partido-pie {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+}
+
+.mensaje-eventos {
+  color: var(--texto-suave);
+  font-size: 0.95rem;
+}
+
+.eventos {
+  display: grid;
+  gap: 0.35rem;
+  width: 100%;
+  margin: 0.25rem 0 0;
+  padding: 0.6rem 0 0;
+  border-top: 1.5px dashed var(--linea);
+  list-style: none;
+}
+
+.eventos li {
+  display: grid;
+  grid-template-columns: 2.6rem 1.3rem 1fr;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.ev-minuto {
+  font-family: var(--fuente-titulo);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.ev-equipo {
+  margin-left: 0.4rem;
+  color: var(--texto-suave);
+  font-size: 0.92rem;
+}
+
+.ev-icono {
+  display: inline-block;
+  width: 0.95rem;
+  height: 1.3rem;
+  border-radius: 2px;
+}
+
+.ev-gol,
+.ev-autogol {
+  width: 1.05rem;
+  height: 1.05rem;
+  border: 2px solid var(--tinta);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--tinta) 0 28%, #fff 30%);
+}
+
+.ev-autogol {
+  border-color: var(--error);
+  background: radial-gradient(circle, var(--error) 0 28%, #fff 30%);
+}
+
+.ev-amarilla {
+  background: #f5c400;
+}
+
+.ev-roja {
+  background: #d3261b;
+}
+
+.ev-falta {
+  width: 1.05rem;
+  height: 1.05rem;
+  border: 2px solid var(--texto-suave);
+  background: repeating-linear-gradient(45deg, transparent 0 3px, var(--texto-suave) 3px 5px);
+}
+
+.cabecera-datos .aviso {
+  color: var(--tinta);
+}

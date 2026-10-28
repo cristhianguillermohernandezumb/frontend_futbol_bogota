@@ -76,6 +76,14 @@ export class AuthService {
     }
   }
 
+  /** Refresca los datos del usuario guardados en la sesion (por ejemplo, tras editar el perfil). */
+  actualizarUsuario(usuario: Usuario): void {
+    const actual = this.sesion();
+    if (actual) {
+      this.guardar({ ...actual, usuario });
+    }
+  }
+
   tieneRol(...roles: Rol[]): boolean {
     const actual = this.rol();
     return actual !== null && roles.includes(actual);

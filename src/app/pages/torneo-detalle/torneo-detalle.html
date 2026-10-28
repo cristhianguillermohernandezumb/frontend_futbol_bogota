@@ -28,6 +28,23 @@
           }
         </span>
       </p>
+
+      @if (!auth.autenticado()) {
+        @if (t.estado !== 'FINALIZADO') {
+          <a class="boton boton-claro" routerLink="/login" [queryParams]="{ volver: '/torneos/' + t.idTorneo }">
+            Ingresa para seguir este torneo
+          </a>
+        }
+      } @else if (siguiendo() !== null && (t.estado !== 'FINALIZADO' || siguiendo())) {
+        <button type="button" [class]="siguiendo() ? 'boton boton-claro' : 'boton boton-peto'" [attr.aria-pressed]="siguiendo()"
+          [disabled]="trabajandoSeguir()" (click)="alternarSeguir()"
+          [title]="siguiendo() ? 'Dejar de seguir este torneo' : 'Seguir este torneo'">
+          {{ siguiendo() ? '✓ Siguiendo' : 'Seguir torneo' }}
+        </button>
+      }
+      @if (errorSeguir(); as texto) {
+        <p class="aviso aviso-error" role="alert">{{ texto }}</p>
+      }
     </div>
   </header>
 
@@ -131,7 +148,41 @@
                     }
                     <span class="equipo equipo-visitante">{{ p.visitante ?? 'Por definir' }}</span>
                   </div>
-                  <span [class]="claseEstado(p.estado)">{{ etiquetaPartido(p.estado) }}</span>
+                  <div class="partido-pie">
+                    <span [class]="claseEstado(p.estado)">{{ etiquetaPartido(p.estado) }}</span>
+                    @if (conMarcador(p)) {
+                      <button type="button" class="enlace" [attr.aria-expanded]="abierto() === p.idPartido" (click)="alternarEventos(p)">
+                        {{ abierto() === p.idPartido ? 'Ocultar eventos' : 'Ver eventos' }}
+                      </button>
+                    }
+                  </div>
+                  @if (abierto() === p.idPartido) {
+                    @if (eventosDe()[p.idPartido]; as ev) {
+                      @if (ev.cargando) {
+                        <p class="mensaje-eventos" role="status">Cargando eventos…</p>
+                      } @else if (ev.error) {
+                        <div class="aviso aviso-error" role="alert">
+                          <p>{{ ev.error }}</p>
+                          <button type="button" class="enlace" (click)="pedirEventos(p.idPartido)">Reintentar</button>
+                        </div>
+                      } @else if (ev.datos.length === 0) {
+                        <p class="mensaje-eventos">Todavía no hay eventos en este partido.</p>
+                      } @else {
+                        <ol class="eventos">
+                          @for (e of ev.datos; track e.idEvento) {
+                            <li>
+                              <span class="ev-minuto">{{ e.minuto }}'</span>
+                              <span [class]="claseEvento(e.tipoEvento)" aria-hidden="true"></span>
+                              <span>
+                                <strong>{{ etiquetaEvento(e.tipoEvento) }}</strong> · {{ e.nombreJugador }}
+                                <span class="ev-equipo">{{ nombreEquipoEvento(p, e) }}</span>
+                              </span>
+                            </li>
+                          }
+                        </ol>
+                      }
+                    }
+                  }
                 </li>
               }
             </ul>

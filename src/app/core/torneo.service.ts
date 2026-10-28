@@ -61,6 +61,8 @@ export class TorneoService {
                   ...p,
                   local: equipos[i].find((e) => e.rol === 'LOCAL')?.nombreEquipo ?? null,
                   visitante: equipos[i].find((e) => e.rol === 'VISITANTE')?.nombreEquipo ?? null,
+                  idLocal: equipos[i].find((e) => e.rol === 'LOCAL')?.idEquipo ?? null,
+                  idVisitante: equipos[i].find((e) => e.rol === 'VISITANTE')?.idEquipo ?? null,
                 })),
               ),
             ),

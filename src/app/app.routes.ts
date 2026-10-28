@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { rolGuard } from './core/guards';
+import { rolGuard, sesionGuard } from './core/guards';
 
 const organizador = rolGuard('ORGANIZADOR', 'ADMIN');
 
@@ -34,6 +34,18 @@ export const routes: Routes = [
     canActivate: [organizador],
     loadComponent: () => import('./pages/organizador/partido-gestion/partido-gestion').then((m) => m.PartidoGestion),
     title: 'Partido',
+  },
+  {
+    path: 'seguimientos',
+    canActivate: [sesionGuard],
+    loadComponent: () => import('./pages/seguimientos/seguimientos').then((m) => m.Seguimientos),
+    title: 'Torneos que sigues',
+  },
+  {
+    path: 'perfil',
+    canActivate: [sesionGuard],
+    loadComponent: () => import('./pages/perfil/perfil').then((m) => m.Perfil),
+    title: 'Mi perfil',
   },
   { path: 'login', loadComponent: () => import('./pages/login/login').then((m) => m.Login), title: 'Ingresar' },
   {
