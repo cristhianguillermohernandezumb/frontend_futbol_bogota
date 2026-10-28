@@ -137,6 +137,13 @@ export class OrganizadorService {
     return this.http.delete<void>(`${API_URL}/torneos/${idTorneo}/equipos/${idEquipo}/jugadores/${idJugador}`);
   }
 
+  /** Cambia solo el escudo de un equipo: el cuerpo es la imagen tal cual. */
+  cambiarEscudo(idEquipo: number, imagen: File): Observable<void> {
+    return this.http.put<void>(`${API_URL}/equipos/${idEquipo}/escudo`, imagen, {
+      headers: { 'Content-Type': imagen.type },
+    });
+  }
+
   // Entrenadores (pertenecen a un equipo)
 
   entrenadoresDeEquipo(idEquipo: number): Observable<Entrenador[]> {

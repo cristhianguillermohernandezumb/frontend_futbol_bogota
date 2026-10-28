@@ -19,6 +19,7 @@ import {
   Torneo,
 } from '../../core/models';
 import { TorneoService } from '../../core/torneo.service';
+import { EscudoEquipo } from '../../shared/escudo-equipo/escudo-equipo';
 
 type Pestana = 'posiciones' | 'partidos' | 'equipos' | 'goleadores';
 
@@ -55,7 +56,7 @@ function inicial<T>(datos: T): Seccion<T> {
 
 @Component({
   selector: 'app-torneo-detalle',
-  imports: [RouterLink, DatePipe, CurrencyPipe],
+  imports: [RouterLink, DatePipe, CurrencyPipe, EscudoEquipo],
   templateUrl: './torneo-detalle.html',
   styleUrl: './torneo-detalle.css',
 })

@@ -5,10 +5,11 @@ import { forkJoin } from 'rxjs';
 import { mensajeDeError } from '../../core/api-error';
 import { EntrenadorPublico, EquipoInscrito, JugadorInscrito } from '../../core/models';
 import { TorneoService } from '../../core/torneo.service';
+import { EscudoEquipo } from '../../shared/escudo-equipo/escudo-equipo';
 
 @Component({
   selector: 'app-equipo-detalle',
-  imports: [RouterLink],
+  imports: [RouterLink, EscudoEquipo],
   templateUrl: './equipo-detalle.html',
   styleUrl: './equipo-detalle.css',
 })

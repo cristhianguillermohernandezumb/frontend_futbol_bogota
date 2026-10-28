@@ -258,6 +258,11 @@
   inset: 0;
 }
 
+.equipo-escudo {
+  --escudo: 3.5rem;
+  margin-bottom: 0.3rem;
+}
+
 .equipo-ver {
   margin-top: 0.3rem;
   color: var(--tinta);

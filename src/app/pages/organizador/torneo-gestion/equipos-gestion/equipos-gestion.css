@@ -33,7 +33,8 @@ h3 {
 
 .fila {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: auto 1fr auto auto;
+  --escudo: 2.5rem;
   gap: 1rem;
   align-items: center;
   padding: 0.75rem 1rem;
@@ -97,4 +98,23 @@ h3 {
     grid-template-columns: 1fr;
     justify-items: start;
   }
+}
+
+.subir {
+  position: relative;
+  cursor: pointer;
+}
+
+.subir.deshabilitado {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* El input real queda invisible encima del boton: sigue siendo accesible con el teclado. */
+.oculto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
 }

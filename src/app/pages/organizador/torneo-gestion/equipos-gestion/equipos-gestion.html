@@ -20,6 +20,7 @@
     <ul class="lista">
       @for (e of inscritos(); track e.idEquipo) {
         <li class="fila">
+          <app-escudo-equipo [idEquipo]="e.idEquipo" [nombre]="e.nombreEquipo" [version]="versionEscudo()" />
           <div>
             <strong>{{ e.nombreEquipo }}</strong>
             <p class="detalle">Inscrito el {{ e.fechaInscripcion | date: 'd MMM y' }}</p>
@@ -32,6 +33,13 @@
               <button type="button" class="boton boton-tinta boton-chico" [disabled]="trabajando()" (click)="pagar(e)">
                 Marcar pagada
               </button>
+            }
+            @if (torneo().estado !== 'FINALIZADO') {
+              <label class="boton boton-borde boton-chico subir" [class.deshabilitado]="trabajando()">
+                Cambiar escudo
+                <input type="file" class="oculto" accept="image/png,image/jpeg,image/gif,image/webp"
+                  [disabled]="trabajando()" (change)="cambiarEscudo(e, $event)" />
+              </label>
             }
             @if (abiertas()) {
               @if (retirando() === e.idEquipo) {
@@ -112,8 +120,8 @@
             </div>
           </div>
           <div class="grupo">
-            <label for="escudo">Escudo <span class="ayuda">(opcional, imagen de hasta 200 KB)</span></label>
-            <input id="escudo" type="file" accept="image/*" (change)="elegirEscudo($event)" />
+            <label for="escudo">Escudo <span class="ayuda">(opcional, imagen de hasta 2 MB)</span></label>
+            <input id="escudo" type="file" accept="image/png,image/jpeg,image/gif,image/webp" (change)="elegirEscudo($event)" />
             @if (errorEscudo(); as texto) {
               <p class="error-campo">{{ texto }}</p>
             } @else if (escudoNombre(); as nombre) {

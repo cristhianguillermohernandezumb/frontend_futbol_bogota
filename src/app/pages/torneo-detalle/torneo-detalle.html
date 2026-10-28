@@ -204,6 +204,7 @@
           <ul class="equipos">
             @for (e of equipos().datos; track e.idEquipo) {
               <li class="equipo-tarjeta">
+                <app-escudo-equipo class="equipo-escudo" [idEquipo]="e.idEquipo" [nombre]="e.nombreEquipo" />
                 <h3>
                   <a class="equipo-enlace" [routerLink]="['/torneos', e.idTorneo, 'equipos', e.idEquipo]">{{ e.nombreEquipo }}</a>
                 </h3>

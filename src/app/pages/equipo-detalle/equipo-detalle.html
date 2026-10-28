@@ -9,9 +9,12 @@
   </div>
 } @else if (equipo(); as e) {
   <header class="cabecera cancha-fondo">
-    <p class="torneo">{{ e.nombreTorneo }}</p>
-    <h1>{{ e.nombreEquipo }}</h1>
-    <p class="resumen">{{ plantilla().length }} {{ plantilla().length === 1 ? 'jugador' : 'jugadores' }}</p>
+    <app-escudo-equipo class="escudo" [idEquipo]="e.idEquipo" [nombre]="e.nombreEquipo" />
+    <div class="cabecera-texto">
+      <p class="torneo">{{ e.nombreTorneo }}</p>
+      <h1>{{ e.nombreEquipo }}</h1>
+      <p class="resumen">{{ plantilla().length }} {{ plantilla().length === 1 ? 'jugador' : 'jugadores' }}</p>
+    </div>
   </header>
 
   <section aria-labelledby="titulo-tecnico">

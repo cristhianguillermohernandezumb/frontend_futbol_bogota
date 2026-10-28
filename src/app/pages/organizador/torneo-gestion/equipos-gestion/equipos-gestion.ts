@@ -7,10 +7,12 @@ import { mensajeDeError } from '../../../../core/api-error';
 import { Equipo, EquipoInscrito, Torneo } from '../../../../core/models';
 import { OrganizadorService } from '../../../../core/organizador.service';
 import { TorneoService } from '../../../../core/torneo.service';
+import { EscudoEquipo } from '../../../../shared/escudo-equipo/escudo-equipo';
 
 /** El backend exige un escudo; si no se sube imagen se envia un byte vacio de relleno. */
 const ESCUDO_VACIO = 'AA==';
-const MAX_ESCUDO_BYTES = 200 * 1024;
+const MAX_ESCUDO_BYTES = 2 * 1024 * 1024;
+const TIPOS_ESCUDO = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 
 interface Mensaje {
   tipo: 'ok' | 'error';
@@ -19,7 +21,7 @@ interface Mensaje {
 
 @Component({
   selector: 'app-equipos-gestion',
-  imports: [ReactiveFormsModule, DatePipe],
+  imports: [ReactiveFormsModule, DatePipe, EscudoEquipo],
   templateUrl: './equipos-gestion.html',
   styleUrl: './equipos-gestion.css',
 })
@@ -37,6 +39,8 @@ export class EquiposGestion implements OnInit {
   protected readonly mensaje = signal<Mensaje | null>(null);
   protected readonly trabajando = signal(false);
   protected readonly retirando = signal<number | null>(null);
+  /** Sube cuando se cambia un escudo, para que el navegador vuelva a pedir la imagen. */
+  protected readonly versionEscudo = signal(0);
 
   /** Equipos que existen pero todavia no estan en este torneo. */
   protected readonly disponibles = computed(() => {
@@ -155,6 +159,23 @@ export class EquiposGestion implements OnInit {
     this.ejecutar(this.organizador.retirar(e.idTorneo, e.idEquipo), `${e.nombreEquipo} fue retirado del torneo.`);
   }
 
+  /** Cambia el escudo de un equipo que ya existe. */
+  protected cambiarEscudo(e: EquipoInscrito, evento: Event): void {
+    const entrada = evento.target as HTMLInputElement;
+    const archivo = entrada.files?.[0];
+    entrada.value = '';
+    if (!archivo) {
+      return;
+    }
+    if (!TIPOS_ESCUDO.includes(archivo.type) || archivo.size > MAX_ESCUDO_BYTES) {
+      this.mensaje.set({ tipo: 'error', texto: 'Elige una imagen PNG, JPG, GIF o WEBP de máximo 2 MB.' });
+      return;
+    }
+    this.ejecutar(this.organizador.cambiarEscudo(e.idEquipo, archivo), `Escudo de ${e.nombreEquipo} actualizado.`, () =>
+      this.versionEscudo.update((v) => v + 1),
+    );
+  }
+
   protected elegirEscudo(evento: Event): void {
     const archivo = (evento.target as HTMLInputElement).files?.[0];
     this.errorEscudo.set(null);
@@ -163,8 +184,8 @@ export class EquiposGestion implements OnInit {
       this.escudoNombre.set(null);
       return;
     }
-    if (!archivo.type.startsWith('image/') || archivo.size > MAX_ESCUDO_BYTES) {
-      this.errorEscudo.set('Elige una imagen de máximo 200 KB.');
+    if (!TIPOS_ESCUDO.includes(archivo.type) || archivo.size > MAX_ESCUDO_BYTES) {
+      this.errorEscudo.set('Elige una imagen PNG, JPG, GIF o WEBP de máximo 2 MB.');
       (evento.target as HTMLInputElement).value = '';
       return;
     }
