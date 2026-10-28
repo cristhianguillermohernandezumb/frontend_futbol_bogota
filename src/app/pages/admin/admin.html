@@ -1,0 +1,20 @@
+<section class="pagina">
+  <h1>Administración</h1>
+  <p class="sub">Gestiona quién usa la plataforma y revisa qué ha pasado en ella.</p>
+
+  <div class="pestanas" role="tablist" aria-label="Administración">
+    @for (p of pestanas; track p.id) {
+      <button type="button" role="tab" class="pestana" [class.activa]="pestana() === p.id"
+        [attr.aria-selected]="pestana() === p.id" (click)="pestana.set(p.id)">
+        {{ p.texto }}
+      </button>
+    }
+  </div>
+
+  <div role="tabpanel">
+    @switch (pestana()) {
+      @case ('usuarios') { <app-usuarios-admin /> }
+      @case ('auditoria') { <app-auditoria-admin /> }
+    }
+  </div>
+</section>

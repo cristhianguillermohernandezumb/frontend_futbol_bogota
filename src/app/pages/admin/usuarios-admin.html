@@ -1,0 +1,101 @@
+<div class="barra-filtros">
+  <div class="grupo buscar">
+    <label for="buscar">Buscar</label>
+    <input id="buscar" type="text" placeholder="Nombre o correo" [ngModel]="texto()" (ngModelChange)="texto.set($event)" />
+  </div>
+  <div class="grupo">
+    <label for="f-rol">Rol</label>
+    <select id="f-rol" [ngModel]="filtroRol()" (ngModelChange)="filtroRol.set($event)">
+      <option value="">Todos</option>
+      @for (r of roles; track r) {
+        <option [value]="r">{{ etiquetaRol(r) }}</option>
+      }
+    </select>
+  </div>
+  <div class="grupo">
+    <label for="f-estado">Estado</label>
+    <select id="f-estado" [ngModel]="filtroEstado()" (ngModelChange)="filtroEstado.set($event)">
+      <option value="">Todos</option>
+      <option value="ACTIVO">Activos</option>
+      <option value="INACTIVO">Inactivos</option>
+    </select>
+  </div>
+</div>
+
+@if (exito(); as texto) {
+  <p class="aviso aviso-ok" role="status">{{ texto }}</p>
+}
+@if (errorAccion(); as texto) {
+  <p class="aviso aviso-error" role="alert">{{ texto }}</p>
+}
+
+@if (cargando()) {
+  <p class="mensaje" role="status">Cargando usuarios…</p>
+} @else if (error(); as texto) {
+  <div class="aviso aviso-error" role="alert">
+    <p>{{ texto }}</p>
+    <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+  </div>
+} @else {
+  <p class="conteo" role="status">{{ visibles().length }} de {{ usuarios().length }} usuarios</p>
+
+  @if (visibles().length === 0) {
+    <p class="mensaje">Ningún usuario coincide con el filtro.</p>
+  } @else {
+    <ul class="lista">
+      @for (u of visibles(); track u.idUsuario) {
+        <li class="fila" [class.inactivo]="u.estado !== 'ACTIVO'">
+          <div class="persona">
+            <h2>
+              {{ nombre(u) }}
+              @if (u.idUsuario === yo()) {
+                <span class="tu">(tú)</span>
+              }
+            </h2>
+            <p class="detalle">{{ u.correo }} · desde {{ u.fechaRegistro | date: 'd MMM y' }}</p>
+          </div>
+
+          <div class="control">
+            <label class="oculto" [for]="'rol-' + u.idUsuario">Rol de {{ nombre(u) }}</label>
+            <select [id]="'rol-' + u.idUsuario" (change)="elegirRol(u, $any($event.target).value)"
+              [disabled]="u.idUsuario === yo() || trabajando() === u.idUsuario">
+              @for (r of roles; track r) {
+                <option [value]="r" [selected]="(rolPendiente(u) ?? u.rol) === r">{{ etiquetaRol(r) }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="estado-fila">
+            <span [class]="'chip ' + (u.estado === 'ACTIVO' ? 'chip-ok' : 'chip-off')">
+              {{ u.estado === 'ACTIVO' ? 'Activo' : 'Inactivo' }}
+            </span>
+            <button type="button" class="boton boton-borde boton-chico" (click)="pedirEstado(u)"
+              [disabled]="u.idUsuario === yo() || trabajando() === u.idUsuario">
+              {{ u.estado === 'ACTIVO' ? 'Desactivar' : 'Activar' }}
+            </button>
+          </div>
+
+          @if (rolPendiente(u); as nuevoRol) {
+            <div class="confirmar" role="alert">
+              <span>¿Cambiar a <strong>{{ etiquetaRol(nuevoRol) }}</strong>?</span>
+              <button type="button" class="boton boton-peto boton-chico" [disabled]="trabajando() === u.idUsuario" (click)="confirmar(u)">Confirmar</button>
+              <button type="button" class="boton boton-borde boton-chico" (click)="pendiente.set(null)">Cancelar</button>
+            </div>
+          } @else if (estadoPendiente(u)) {
+            <div class="confirmar" role="alert">
+              <span>
+                @if (u.estado === 'ACTIVO') {
+                  Si lo desactivas, <strong>no podrá volver a ingresar</strong>.
+                } @else {
+                  ¿Volver a activar esta cuenta?
+                }
+              </span>
+              <button type="button" class="boton boton-peto boton-chico" [disabled]="trabajando() === u.idUsuario" (click)="confirmar(u)">Confirmar</button>
+              <button type="button" class="boton boton-borde boton-chico" (click)="pendiente.set(null)">Cancelar</button>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+}

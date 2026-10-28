@@ -10,6 +10,9 @@
 
   <nav class="acciones" aria-label="Cuenta">
     @if (auth.usuario(); as usuario) {
+      @if (auth.tieneRol('ADMIN')) {
+        <a class="enlace" routerLink="/admin">Administración</a>
+      }
       @if (auth.tieneRol('ORGANIZADOR', 'ADMIN')) {
         <a class="enlace" routerLink="/organizador">Mis torneos</a>
       }

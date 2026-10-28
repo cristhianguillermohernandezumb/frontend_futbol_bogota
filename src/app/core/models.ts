@@ -286,6 +286,18 @@ export interface PerfilRequest {
   contrasenia?: string;
 }
 
+export interface AuditoriaRegistro {
+  idAuditoria: number;
+  detalle: string | null;
+  fechaHora: string;
+  entidad: string;
+  idRegistro: string | null;
+  accion: string;
+  idUsuario: number;
+  nombreUsuario: string;
+  idTorneo: number | null;
+}
+
 /** Formato de error que devuelve el backend (GlobalExceptionHandler). */
 export interface ErrorApi {
   fecha: string;

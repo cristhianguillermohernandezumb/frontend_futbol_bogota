@@ -47,6 +47,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/perfil/perfil').then((m) => m.Perfil),
     title: 'Mi perfil',
   },
+  {
+    path: 'admin',
+    canActivate: [rolGuard('ADMIN')],
+    loadComponent: () => import('./pages/admin/admin').then((m) => m.Admin),
+    title: 'Administración',
+  },
   { path: 'login', loadComponent: () => import('./pages/login/login').then((m) => m.Login), title: 'Ingresar' },
   {
     path: 'registro',

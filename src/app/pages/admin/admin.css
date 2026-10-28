@@ -1,0 +1,49 @@
+.pagina {
+  display: grid;
+  gap: 1.1rem;
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 2rem clamp(1rem, 4vw, 2.5rem) 4rem;
+}
+
+.pagina h1 {
+  font-size: 2.6rem;
+}
+
+.sub {
+  color: var(--texto-suave);
+}
+
+.pestanas {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  border-bottom: 2px solid var(--linea);
+  overflow-x: auto;
+}
+
+.pestana {
+  padding: 0.6rem 1rem;
+  border: 0;
+  border-bottom: 4px solid transparent;
+  margin-bottom: -2px;
+  background: transparent;
+  color: var(--texto-suave);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pestana:hover {
+  color: var(--tinta);
+}
+
+.pestana.activa {
+  border-bottom-color: var(--peto);
+  color: var(--tinta);
+}
+
+[role='tabpanel'] {
+  padding-top: 1.25rem;
+}

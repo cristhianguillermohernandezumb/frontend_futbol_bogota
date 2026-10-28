@@ -1,5 +1,6 @@
 .barra {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
@@ -34,7 +35,8 @@
 .acciones {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
 }
 
 .sesion {

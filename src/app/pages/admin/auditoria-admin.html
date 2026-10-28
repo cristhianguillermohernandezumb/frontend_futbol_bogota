@@ -1,0 +1,76 @@
+<div class="barra-filtros">
+  <div class="grupo">
+    <label for="a-usuario">Usuario</label>
+    <select id="a-usuario" [ngModel]="filtroUsuario()" (ngModelChange)="filtrar(filtroUsuario, $event)">
+      <option value="">Todos</option>
+      @for (u of usuarios(); track u.id) {
+        <option [value]="u.id">{{ u.nombre }}</option>
+      }
+    </select>
+  </div>
+  <div class="grupo">
+    <label for="a-accion">Acción</label>
+    <select id="a-accion" [ngModel]="filtroAccion()" (ngModelChange)="filtrar(filtroAccion, $event)">
+      <option value="">Todas</option>
+      @for (a of acciones(); track a) {
+        <option [value]="a">{{ a }}</option>
+      }
+    </select>
+  </div>
+  <div class="grupo">
+    <label for="a-entidad">Entidad</label>
+    <select id="a-entidad" [ngModel]="filtroEntidad()" (ngModelChange)="filtrar(filtroEntidad, $event)">
+      <option value="">Todas</option>
+      @for (e of entidades(); track e) {
+        <option [value]="e">{{ e }}</option>
+      }
+    </select>
+  </div>
+  <button type="button" class="boton boton-borde boton-chico" (click)="cargar()" [disabled]="cargando()">Actualizar</button>
+</div>
+
+@if (cargando()) {
+  <p class="mensaje" role="status">Cargando registros…</p>
+} @else if (error(); as texto) {
+  <div class="aviso aviso-error" role="alert">
+    <p>{{ texto }}</p>
+    <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+  </div>
+} @else if (registros().length === 0) {
+  <p class="mensaje">Todavía no hay actividad registrada.</p>
+} @else {
+  <p class="conteo" role="status">{{ filtrados().length }} de {{ registros().length }} registros · más recientes primero</p>
+
+  @if (filtrados().length === 0) {
+    <p class="mensaje">Ningún registro coincide con el filtro.</p>
+  } @else {
+    <ul class="lista">
+      @for (r of visibles(); track r.idAuditoria) {
+        <li class="fila">
+          <time class="cuando" [attr.datetime]="r.fechaHora">{{ r.fechaHora | date: 'd MMM y, HH:mm:ss' }}</time>
+          <span [class]="'accion ' + claseAccion(r.accion)">{{ r.accion }}</span>
+          <div class="que">
+            <strong>{{ r.entidad }}</strong>
+            @if (r.idRegistro) {
+              <span class="id">#{{ r.idRegistro }}</span>
+            }
+            @if (r.detalle) {
+              <span class="detalle">{{ r.detalle }}</span>
+            }
+          </div>
+          <div class="quien">
+            {{ r.nombreUsuario }}
+            @if (r.idTorneo) {
+              · <a [routerLink]="['/torneos', r.idTorneo]">torneo {{ r.idTorneo }}</a>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+    @if (visibles().length < filtrados().length) {
+      <button type="button" class="boton boton-borde" (click)="masResultados()">
+        Mostrar más ({{ filtrados().length - visibles().length }} restantes)
+      </button>
+    }
+  }
+}
