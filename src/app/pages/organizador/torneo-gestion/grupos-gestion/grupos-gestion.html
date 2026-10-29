@@ -1,0 +1,185 @@
+@if (mensaje(); as m) {
+  <p [class]="m.tipo === 'ok' ? 'aviso aviso-ok' : 'aviso aviso-error'" [attr.role]="m.tipo === 'ok' ? 'status' : 'alert'">
+    {{ m.texto }}
+  </p>
+}
+
+@if (cargando()) {
+  <p class="vacio" role="status">Cargando grupos…</p>
+} @else if (errorCarga(); as texto) {
+  <div class="aviso aviso-error" role="alert">
+    <p>{{ texto }}</p>
+    <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+  </div>
+} @else if (inscritos().length < 2) {
+  <p class="aviso">Inscribe al menos 2 equipos en la pestaña "Equipos" para poder armar grupos.</p>
+} @else {
+  <p class="resumen">
+    <strong>{{ inscritos().length }}</strong> equipos inscritos ·
+    <strong>{{ grupos().length }}</strong> {{ grupos().length === 1 ? 'grupo' : 'grupos' }} ·
+    <strong>{{ sinGrupo().length }}</strong> sin grupo
+  </p>
+
+  @if (!puedeModificar()) {
+    <p class="aviso">El torneo ya finalizó: los grupos no se pueden modificar.</p>
+  } @else {
+    <div class="modos" role="group" aria-label="Cómo armar los grupos">
+      <button type="button" class="boton" [class.boton-tinta]="modo() === 'random'" [class.boton-borde]="modo() !== 'random'"
+        [attr.aria-pressed]="modo() === 'random'" [disabled]="trabajando()" (click)="elegirModo('random')">
+        Random
+      </button>
+      <button type="button" class="boton" [class.boton-tinta]="modo() === 'manual'" [class.boton-borde]="modo() !== 'manual'"
+        [attr.aria-pressed]="modo() === 'manual'" [disabled]="trabajando()" (click)="elegirModo('manual')">
+        Manual
+      </button>
+    </div>
+
+    @if (modo() === 'random') {
+      <div class="bloque">
+        <h2>Sorteo al azar</h2>
+        <p class="nota">Reparte todos los equipos inscritos al azar; ningún equipo se repite en dos grupos.</p>
+        <div class="tamano">
+          <label for="tamano-grupo">Equipos por grupo</label>
+          <div class="tamano-controles">
+            <input id="tamano-grupo" type="number" min="2" step="1" inputmode="numeric" [ngModel]="tamano()"
+              (ngModelChange)="cambiarTamano($event)" [disabled]="trabajando()" />
+            @for (t of tamanosRapidos; track t) {
+              <button type="button" class="boton boton-borde boton-chico" [class.activo]="tamano() === t"
+                [disabled]="trabajando()" (click)="cambiarTamano(t)">{{ t }}</button>
+            }
+          </div>
+        </div>
+        @if (plan().error; as e) {
+          <p class="aviso aviso-error" role="alert">{{ e }}</p>
+        } @else {
+          <p class="vista-previa">Se formarán <strong>{{ plan().texto }}</strong>.</p>
+        }
+
+        @if (confirmandoSorteo()) {
+          <div class="confirmacion" role="alert">
+            <p>Se borrarán los {{ grupos().length }} grupos actuales con sus equipos y se hará un sorteo nuevo.</p>
+            <div class="botones">
+              <button type="button" class="boton boton-peto" [disabled]="trabajando()" (click)="sortear()">Sí, sortear de nuevo</button>
+              <button type="button" class="boton boton-borde" (click)="confirmandoSorteo.set(false)">Cancelar</button>
+            </div>
+          </div>
+        } @else {
+          <button type="button" class="boton boton-peto" [disabled]="trabajando() || !!plan().error" (click)="pedirSorteo()">
+            {{ grupos().length > 0 ? 'Sortear de nuevo' : 'Sortear grupos' }}
+          </button>
+        }
+      </div>
+    }
+
+    @if (modo() === 'manual') {
+      <div class="bloque">
+        <h2>Armado manual</h2>
+        <p class="nota">Crea los grupos que necesites y asigna a cada uno los equipos que quieras (el tamaño es libre).</p>
+        @if (letrasLibres().length === 0) {
+          <p class="aviso">Ya usaste todas las letras de la A a la Z.</p>
+        } @else {
+          <div class="agregar">
+            <label for="letra-nueva">Nuevo grupo</label>
+            <div class="tamano-controles">
+              <select id="letra-nueva" [ngModel]="letraNueva()" (ngModelChange)="letraNueva.set($event)" [disabled]="trabajando()">
+                @for (l of letrasLibres(); track l) {
+                  <option [value]="l">Grupo {{ l }}</option>
+                }
+              </select>
+              <button type="button" class="boton boton-tinta" [disabled]="trabajando() || !letraNueva()" (click)="agregarGrupo()">
+                Agregar grupo
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  @if (progreso(); as p) {
+    <p class="aviso" role="status">{{ p }}</p>
+  }
+
+  @if (sinGrupo().length > 0) {
+    <section class="sin-grupo" aria-labelledby="titulo-sin-grupo">
+      <h2 id="titulo-sin-grupo">Equipos sin grupo ({{ sinGrupo().length }})</h2>
+      <ul class="fichas">
+        @for (e of sinGrupo(); track e.idEquipo) {
+          <li>{{ e.nombreEquipo }}</li>
+        }
+      </ul>
+    </section>
+  }
+
+  @if (grupos().length === 0) {
+    <p class="vacio">Todavía no hay grupos. Elige <strong>Random</strong> o <strong>Manual</strong> para empezar.</p>
+  } @else {
+    <ul class="tarjetas">
+      @for (g of grupos(); track g.idGrupo) {
+        <li class="g-tarjeta">
+          <header class="g-cabecera">
+            <h3><span class="g-letra" aria-hidden="true">{{ g.letra }}</span> Grupo {{ g.letra }}</h3>
+            <span class="g-cuenta">{{ g.equipos.length }} {{ g.equipos.length === 1 ? 'equipo' : 'equipos' }}</span>
+          </header>
+
+          @if (g.equipos.length === 0) {
+            <p class="vacio">Sin equipos.</p>
+          } @else {
+            <ul class="g-equipos">
+              @for (e of g.equipos; track e.idEquipo) {
+                <li>
+                  <span>{{ e.nombreEquipo }}</span>
+                  @if (puedeModificar()) {
+                    <button type="button" class="boton boton-borde boton-chico" [disabled]="trabajando()"
+                      [attr.aria-label]="'Quitar a ' + e.nombreEquipo + ' del grupo ' + g.letra" (click)="quitar(g, e)">
+                      Quitar
+                    </button>
+                  }
+                </li>
+              }
+            </ul>
+          }
+
+          @if (puedeModificar()) {
+            <div class="g-pie">
+              @if (sinGrupo().length > 0) {
+                <select [attr.aria-label]="'Equipo para el grupo ' + g.letra" [disabled]="trabajando()"
+                  (change)="elegirEquipo(g.idGrupo, $any($event.target).value)">
+                  @for (e of sinGrupo(); track e.idEquipo) {
+                    <option [value]="e.idEquipo" [selected]="e.idEquipo === equipoElegido(g.idGrupo)">{{ e.nombreEquipo }}</option>
+                  }
+                </select>
+                <button type="button" class="boton boton-tinta boton-chico" [disabled]="trabajando()" (click)="asignar(g)">Asignar</button>
+              }
+              @if (g.equipos.length === 0) {
+                @if (confirmandoEliminar() === g.idGrupo) {
+                  <button type="button" class="boton boton-peligro boton-chico" [disabled]="trabajando()" (click)="eliminar(g)">Confirmar</button>
+                  <button type="button" class="boton boton-borde boton-chico" (click)="confirmandoEliminar.set(null)">No</button>
+                } @else {
+                  <button type="button" class="boton boton-borde boton-chico" (click)="confirmandoEliminar.set(g.idGrupo)">Eliminar grupo</button>
+                }
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+
+    @if (puedeModificar()) {
+      @if (confirmandoBorrarTodo()) {
+        <div class="confirmacion" role="alert">
+          <p>Se borrarán los {{ grupos().length }} grupos y todas sus asignaciones.</p>
+          <div class="botones">
+            <button type="button" class="boton boton-peligro" [disabled]="trabajando()" (click)="borrarTodo()">Sí, borrar todos</button>
+            <button type="button" class="boton boton-borde" (click)="confirmandoBorrarTodo.set(false)">Cancelar</button>
+          </div>
+        </div>
+      } @else {
+        <button type="button" class="boton boton-borde boton-chico borrar-todo" [disabled]="trabajando()"
+          (click)="confirmandoBorrarTodo.set(true)">
+          Borrar todos los grupos
+        </button>
+      }
+    }
+  }
+}

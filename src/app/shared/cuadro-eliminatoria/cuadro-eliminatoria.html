@@ -1,0 +1,33 @@
+<div class="cuadro-envoltura" tabindex="0" role="region" aria-label="Cuadro de eliminatorias">
+  <div class="cuadro" [style.--filas]="filas">
+    @for (col of columnas(); track col.titulo; let c = $index) {
+      <h3 class="titulo-ronda" [style.grid-column]="c + 1" [style.grid-row]="1">{{ col.titulo }}</h3>
+      @for (t of col.tarjetas; track t.fila) {
+        <div class="hueco" [class.par-arriba]="t.par === 'arriba'" [class.par-abajo]="t.par === 'abajo'"
+          [class.conecta]="t.conecta" [style.grid-column]="c + 1" [style.grid-row]="(t.fila + 1) + ' / span ' + t.alto">
+          <article class="cruce" [class.vacio]="!t.equipos" [attr.aria-label]="t.etiqueta">
+            @if (t.equipos; as eq) {
+              @for (e of eq; track e.idEquipo; let i = $index) {
+                <div class="equipo">
+                  <app-escudo-equipo class="escudo" [idEquipo]="e.idEquipo" [nombre]="e.nombre" />
+                  <span class="nombre">{{ e.nombre }}</span>
+                  @if (e.goles !== null) {
+                    <span class="goles">{{ e.goles }}</span>
+                  }
+                </div>
+                @if (i === 0) {
+                  <span class="vs">vs</span>
+                }
+              }
+              @if (t.fecha) {
+                <p class="meta">{{ t.fecha | date: 'd MMM, h:mm a' }}</p>
+              }
+            } @else {
+              <p class="por-definir">Por definir</p>
+            }
+          </article>
+        </div>
+      }
+    }
+  </div>
+</div>

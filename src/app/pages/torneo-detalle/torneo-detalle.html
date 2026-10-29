@@ -49,7 +49,7 @@
   </header>
 
   <div class="pestanas" role="tablist" aria-label="Secciones del torneo">
-    @for (p of pestanas; track p.id) {
+    @for (p of pestanas(); track p.id) {
       <button
         type="button"
         role="tab"
@@ -114,6 +114,69 @@
             </table>
           </div>
           <p class="nota">Victoria 3 puntos, empate 1, derrota 0. Solo cuentan los partidos finalizados.</p>
+
+          @if (clasificados(); as c) {
+            <section class="clasificados" aria-labelledby="titulo-clasificados">
+              <h2 id="titulo-clasificados">Clasificados a la siguiente ronda</h2>
+              <p class="nota">
+                {{ c.total }} equipos: el primero y el segundo de cada grupo y los {{ c.cupoTerceros }} mejores terceros.
+              </p>
+
+              <h3 class="clasificados-sub">Primero y segundo de cada grupo</h3>
+              <ul class="directos">
+                @for (d of c.directos; track d.letra) {
+                  <li class="directo">
+                    <span class="grupo-letra" aria-hidden="true">{{ d.letra }}</span>
+                    <span class="solo-lectores">Grupo {{ d.letra }}</span>
+                    <ol>
+                      <li><span class="puesto">1.º</span> {{ d.primero.nombre }}</li>
+                      <li><span class="puesto">2.º</span> {{ d.segundo.nombre }}</li>
+                    </ol>
+                  </li>
+                }
+              </ul>
+
+              @if (c.terceros.length > 0) {
+                <h3 class="clasificados-sub">Mejores terceros</h3>
+                <div class="tabla-envoltura">
+                  <table class="tabla terceros">
+                    <caption class="solo-lectores">Ranking de los equipos que quedaron terceros</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col" class="izq">Equipo</th>
+                        <th scope="col">Grupo</th>
+                        <th scope="col" title="Diferencia de goles">DG</th>
+                        <th scope="col" title="Goles a favor">GF</th>
+                        <th scope="col" title="Puntos" class="pts">Pts</th>
+                        <th scope="col">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (f of c.terceros; track f.idEquipo) {
+                        <tr [class.clasifica]="f.pasa">
+                          <td>{{ f.puesto }}</td>
+                          <th scope="row" class="izq">{{ f.nombre }}</th>
+                          <td>{{ f.letra }}</td>
+                          <td>{{ (f.pos?.diferenciaGoles ?? 0) > 0 ? '+' + f.pos?.diferenciaGoles : (f.pos?.diferenciaGoles ?? 0) }}</td>
+                          <td>{{ f.pos?.golesFavor ?? 0 }}</td>
+                          <td class="pts">{{ f.pos?.puntos ?? 0 }}</td>
+                          <td>
+                            <span [class]="f.pasa ? 'tercero-estado tercero-pasa' : 'tercero-estado'">
+                              {{ f.pasa ? 'Clasifica' : 'Eliminado' }}
+                            </span>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+                <p class="nota">Los terceros se ordenan por puntos, diferencia de goles, goles a favor y nombre.</p>
+              }
+            </section>
+          } @else if (grupos().datos.length > 0) {
+            <p class="nota">Los clasificados a la siguiente ronda se definen cuando termine la fase de grupos.</p>
+          }
         }
       }
 
@@ -167,6 +230,22 @@
             Cada grupo se juega todos contra todos. Cuando termina, los dos primeros de cada grupo aparecen
             resaltados.
           </p>
+        }
+      }
+
+      @case ('cruces') {
+        <h2 class="jornada">{{ '32avos de final' }}</h2>
+        @if (cruces().cargando || partidos().cargando) {
+          <p class="mensaje" role="status">Cargando cruces…</p>
+        } @else if (cruces().error; as mensaje) {
+          <div class="aviso aviso-error" role="alert">
+            <p>{{ mensaje }}</p>
+            <button type="button" class="enlace" (click)="cargarCruces()">Reintentar</button>
+          </div>
+        } @else if (cruces().datos.length === 0) {
+          <p class="mensaje">La fase de grupos terminó. El organizador aún no define los cruces de 32avos.</p>
+        } @else {
+          <app-cuadro-eliminatoria [cruces]="cruces().datos" [partidos]="partidos().datos" />
         }
       }
 

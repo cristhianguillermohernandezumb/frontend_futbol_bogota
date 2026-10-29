@@ -6,6 +6,7 @@ import { API_URL } from './config';
 import {
   EquipoDePartido,
   EntrenadorPublico,
+  Cruce,
   EquipoDeGrupo,
   EquipoInscrito,
   EstadoTorneo,
@@ -45,6 +46,12 @@ export class TorneoService {
   /** Entrenadores del equipo, solo datos publicos. */
   entrenadoresDeEquipo(idTorneo: number, idEquipo: number): Observable<EntrenadorPublico[]> {
     return this.http.get<EntrenadorPublico[]>(`${API_URL}/torneos/${idTorneo}/equipos/${idEquipo}/entrenadores`);
+  }
+
+  /** Cruces de una ronda eliminatoria (consulta publica). */
+  cruces(id: number, ronda: string): Observable<Cruce[]> {
+    const params = new HttpParams().set('ronda', ronda);
+    return this.http.get<Cruce[]>(`${API_URL}/torneos/${id}/cruces`, { params });
   }
 
   /** Grupos del torneo con sus equipos (el backend da los equipos de cada grupo por aparte). Consulta publica. */

@@ -91,8 +91,17 @@
         @case ('entrenadores') {
           <app-entrenadores-gestion [torneo]="t" />
         }
+        @case ('grupos') {
+          <app-grupos-gestion [torneo]="t" />
+        }
         @case ('partidos') {
           <app-partidos-gestion [torneo]="t" />
+        }
+        @case ('cruces') {
+          <app-cruces-gestion [torneo]="t" />
+        }
+        @case ('eliminatorias') {
+          <app-partidos-eliminatoria [torneo]="t" />
         }
       }
     </section>

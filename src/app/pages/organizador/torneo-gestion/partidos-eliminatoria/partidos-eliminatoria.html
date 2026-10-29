@@ -1,0 +1,134 @@
+@if (mensaje(); as m) {
+  <p [class]="m.tipo === 'ok' ? 'aviso aviso-ok' : 'aviso aviso-error'" [attr.role]="m.tipo === 'ok' ? 'status' : 'alert'">
+    {{ m.texto }}
+  </p>
+}
+
+@if (cargando()) {
+  <p class="vacio" role="status">Cargando…</p>
+} @else if (errorCarga(); as texto) {
+  <div class="aviso aviso-error" role="alert">
+    <p>{{ texto }}</p>
+    <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+  </div>
+} @else {
+  <h2>Partidos de {{ titulo }}</h2>
+
+  @if (filas().length === 0) {
+    <p class="aviso">
+      Aún no hay cruces. Primero define quién juega contra quién en la pestaña "{{ titulo }}" (cuando termine la fase de grupos).
+    </p>
+  } @else {
+    <p class="nota">
+      Los equipos ya vienen de los cruces. Aquí agregas fecha y cancha, y luego árbitros, alineación, inicio y eventos de cada
+      partido. {{ creados() }} de {{ filas().length }} partidos creados.
+    </p>
+
+    <ul class="lista">
+      @for (f of filas(); track f.cruce.idCruce) {
+        <li class="partido">
+          <p class="fecha">
+            Cruce {{ f.cruce.orden }}
+            @if (f.partido; as p) {
+              · {{ p.fechaHora | date: 'EEE d MMM, h:mm a' }} · {{ p.nombreCancha }}
+            }
+          </p>
+          <div class="cruce">
+            <span class="lado local">
+              <span>{{ f.cruce.nombreLocal }}</span>
+              <app-escudo-equipo class="escudo" [idEquipo]="f.cruce.idLocal" [nombre]="f.cruce.nombreLocal" />
+            </span>
+            @if (f.partido; as p) {
+              @if (conMarcador(p)) {
+                <span class="marcador">{{ p.golesLocal }} - {{ p.golesVisitante }}</span>
+              } @else {
+                <span class="marcador vs">vs</span>
+              }
+            } @else {
+              <span class="marcador vs">vs</span>
+            }
+            <span class="lado visitante">
+              <app-escudo-equipo class="escudo" [idEquipo]="f.cruce.idVisitante" [nombre]="f.cruce.nombreVisitante" />
+              <span>{{ f.cruce.nombreVisitante }}</span>
+            </span>
+          </div>
+
+          @if (f.partido; as p) {
+            <div class="fila-acciones">
+              <span [class]="'estado estado-' + p.estado.toLowerCase()">{{ etiquetaEstado(p.estado) }}</span>
+              @for (t of transiciones(p); track t.valor) {
+                <button type="button" class="boton boton-tinta boton-chico" [disabled]="trabajando()" (click)="cambiarEstado(p, t)">
+                  {{ t.texto }}
+                </button>
+              }
+              <a class="boton boton-tinta boton-chico" [routerLink]="['/organizador/partidos', p.idPartido]">
+                {{ p.estado === 'EN_JUEGO' ? 'Panel en vivo' : 'Alineación' }}
+              </a>
+              <button type="button" class="boton boton-borde boton-chico" [attr.aria-expanded]="conArbitros() === p.idPartido"
+                (click)="alternarArbitros(p.idPartido)">
+                Árbitros
+              </button>
+              @if (puedeEliminar(p)) {
+                @if (eliminando() === p.idPartido) {
+                  <button type="button" class="boton boton-peligro boton-chico" [disabled]="trabajando()" (click)="eliminar(p)">
+                    Confirmar eliminación
+                  </button>
+                  <button type="button" class="boton boton-borde boton-chico" (click)="eliminando.set(null)">No</button>
+                } @else {
+                  <button type="button" class="boton boton-borde boton-chico" (click)="eliminando.set(p.idPartido)">Eliminar</button>
+                }
+              }
+            </div>
+            @if (conArbitros() === p.idPartido) {
+              <app-arbitros-partido [idPartido]="p.idPartido" [estadoPartido]="p.estado" />
+            }
+          } @else if (puedeProgramar()) {
+            @if (creandoPara() === f.cruce.idCruce) {
+              <form class="formulario" [formGroup]="form" (ngSubmit)="crearPartido(f.cruce)" novalidate>
+                <div class="rejilla">
+                  <div class="grupo">
+                    <label [for]="'fecha-' + f.cruce.idCruce">Fecha y hora</label>
+                    <input [id]="'fecha-' + f.cruce.idCruce" type="datetime-local" formControlName="fechaHora" [min]="minFecha()"
+                      [max]="maxFecha()" [attr.aria-invalid]="invalido('fechaHora')" />
+                    @if (invalido('fechaHora')) {
+                      <p class="error-campo">Elige fecha y hora dentro de las fechas del torneo.</p>
+                    }
+                  </div>
+                  <div class="grupo">
+                    <label [for]="'cancha-' + f.cruce.idCruce">Cancha</label>
+                    <select [id]="'cancha-' + f.cruce.idCruce" formControlName="idCancha" [attr.aria-invalid]="invalido('idCancha')">
+                      <option [value]="0">Elige una cancha…</option>
+                      @for (c of canchas(); track c.idCancha) {
+                        <option [value]="c.idCancha">{{ c.nombre }} · {{ c.localidad }}</option>
+                      }
+                    </select>
+                    @if (invalido('idCancha')) {
+                      <p class="error-campo">Elige una cancha.</p>
+                    }
+                  </div>
+                </div>
+                <div class="botones">
+                  <button type="submit" class="boton boton-peto" [disabled]="trabajando()">
+                    {{ trabajando() ? 'Creando…' : 'Crear partido' }}
+                  </button>
+                  <button type="button" class="boton boton-borde" (click)="creandoPara.set(null)">Cancelar</button>
+                </div>
+              </form>
+            } @else {
+              <div class="fila-acciones">
+                <span class="estado estado-sin">Sin partido</span>
+                <button type="button" class="boton boton-tinta boton-chico" [disabled]="trabajando()" (click)="abrirFormulario(f.cruce.idCruce)">
+                  Crear partido
+                </button>
+              </div>
+            }
+          }
+        </li>
+      }
+    </ul>
+
+    @if (puedeProgramar() && canchas().length === 0) {
+      <p class="aviso">Aún no hay canchas. Créalas desde la pestaña "Partidos" para poder programar.</p>
+    }
+  }
+}

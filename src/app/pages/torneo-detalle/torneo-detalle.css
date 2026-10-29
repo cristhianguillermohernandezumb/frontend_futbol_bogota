@@ -425,3 +425,70 @@
 .grupo-tabla tbody tr.clasifica {
   background: #e6f2eb;
 }
+
+.clasificados {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 2px solid var(--linea);
+}
+
+.clasificados h2 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.clasificados-sub {
+  margin: 1.25rem 0 0.6rem;
+  font-size: 1.1rem;
+}
+
+.directos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.directo {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 6px;
+  background: var(--papel);
+}
+
+.directo ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-weight: 600;
+}
+
+.directo .puesto {
+  display: inline-block;
+  min-width: 1.8rem;
+  color: var(--texto-suave);
+  font-weight: 700;
+}
+
+.terceros tbody tr:first-child {
+  background: transparent;
+}
+
+.terceros tbody tr.clasifica {
+  background: #e6f2eb;
+}
+
+.tercero-estado {
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.tercero-pasa {
+  color: #14653d;
+}

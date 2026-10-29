@@ -14,6 +14,11 @@ import {
   EquipoDePartido,
   EquipoInscrito,
   EventoPartido,
+  Cruce,
+  CruceRequest,
+  EquipoDeGrupo,
+  Grupo,
+  GrupoRequest,
   EventoRequest,
   EquipoRequest,
   EstadoPartido,
@@ -240,5 +245,33 @@ export class OrganizadorService {
 
   eliminarEvento(idEvento: number): Observable<void> {
     return this.http.delete<void>(`${API_URL}/eventos/${idEvento}`);
+  }
+
+  // Grupos
+
+  crearGrupo(datos: GrupoRequest): Observable<Grupo> {
+    return this.http.post<Grupo>(`${API_URL}/grupos`, datos);
+  }
+
+  eliminarGrupo(idGrupo: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/grupos/${idGrupo}`);
+  }
+
+  asignarEquipoAGrupo(idGrupo: number, idEquipo: number): Observable<EquipoDeGrupo> {
+    return this.http.post<EquipoDeGrupo>(`${API_URL}/grupos/${idGrupo}/equipos/${idEquipo}`, null);
+  }
+
+  quitarEquipoDeGrupo(idGrupo: number, idEquipo: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/grupos/${idGrupo}/equipos/${idEquipo}`);
+  }
+
+  // Cruces de eliminatorias
+
+  guardarCruces(idTorneo: number, ronda: string, cruces: CruceRequest[]): Observable<Cruce[]> {
+    return this.http.put<Cruce[]>(`${API_URL}/torneos/${idTorneo}/cruces/${ronda}`, cruces);
+  }
+
+  borrarCruces(idTorneo: number, ronda: string): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/torneos/${idTorneo}/cruces/${ronda}`);
   }
 }

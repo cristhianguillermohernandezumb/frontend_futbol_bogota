@@ -368,3 +368,26 @@ export interface EquipoDeGrupo {
 export interface GrupoConEquipos extends Grupo {
   equipos: EquipoDeGrupo[];
 }
+
+export interface GrupoRequest {
+  fase: number;
+  letra: string;
+  idTorneo: number;
+}
+
+/** Cruce de una ronda eliminatoria: quien juega contra quien (el partido se crea despues). */
+export interface Cruce {
+  idCruce: number;
+  idTorneo: number;
+  ronda: string;
+  orden: number;
+  idLocal: number;
+  nombreLocal: string;
+  idVisitante: number;
+  nombreVisitante: string;
+}
+
+export interface CruceRequest {
+  idLocal: number;
+  idVisitante: number;
+}

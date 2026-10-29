@@ -7,12 +7,15 @@ import { AuthService } from '../../../core/auth.service';
 import { EstadoTorneo, Modalidad, Torneo } from '../../../core/models';
 import { OrganizadorService } from '../../../core/organizador.service';
 import { TorneoService } from '../../../core/torneo.service';
+import { CrucesGestion } from './cruces-gestion/cruces-gestion';
 import { EntrenadoresGestion } from './entrenadores-gestion/entrenadores-gestion';
 import { EquiposGestion } from './equipos-gestion/equipos-gestion';
+import { GruposGestion } from './grupos-gestion/grupos-gestion';
 import { JugadoresGestion } from './jugadores-gestion/jugadores-gestion';
+import { PartidosEliminatoria } from './partidos-eliminatoria/partidos-eliminatoria';
 import { PartidosGestion } from './partidos-gestion/partidos-gestion';
 
-type Pestana = 'resumen' | 'equipos' | 'jugadores' | 'entrenadores' | 'partidos';
+type Pestana = 'resumen' | 'equipos' | 'jugadores' | 'entrenadores' | 'grupos' | 'partidos' | 'cruces' | 'eliminatorias';
 
 const NUMERAL: Record<Modalidad, string> = { FUTBOL_5: '5v5', FUTBOL_7: '7v7', FUTBOL_8: '8v8', FUTBOL_11: '11v11' };
 
@@ -39,7 +42,7 @@ const SIGUIENTE: Record<EstadoTorneo, { valor: EstadoTorneo; boton: string; avis
 
 @Component({
   selector: 'app-torneo-gestion',
-  imports: [RouterLink, DatePipe, CurrencyPipe, EquiposGestion, JugadoresGestion, EntrenadoresGestion, PartidosGestion],
+  imports: [RouterLink, DatePipe, CurrencyPipe, EquiposGestion, JugadoresGestion, EntrenadoresGestion, GruposGestion, PartidosGestion, CrucesGestion, PartidosEliminatoria],
   templateUrl: './torneo-gestion.html',
   styleUrl: './torneo-gestion.css',
 })
@@ -54,7 +57,10 @@ export class TorneoGestion implements OnInit {
     { id: 'equipos', texto: 'Equipos' },
     { id: 'jugadores', texto: 'Jugadores' },
     { id: 'entrenadores', texto: 'Entrenadores' },
+    { id: 'grupos', texto: 'Grupos' },
     { id: 'partidos', texto: 'Partidos' },
+    { id: 'cruces', texto: '32avos de final' },
+    { id: 'eliminatorias', texto: 'Partidos tras fase de grupos' },
   ];
 
   protected readonly pestana = signal<Pestana>('resumen');

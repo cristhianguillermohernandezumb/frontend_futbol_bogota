@@ -1,0 +1,122 @@
+@if (mensaje(); as m) {
+  <p [class]="m.tipo === 'ok' ? 'aviso aviso-ok' : 'aviso aviso-error'" [attr.role]="m.tipo === 'ok' ? 'status' : 'alert'">
+    {{ m.texto }}
+  </p>
+}
+
+@if (cargando()) {
+  <p class="vacio" role="status">Cargando…</p>
+} @else if (errorCarga(); as texto) {
+  <div class="aviso aviso-error" role="alert">
+    <p>{{ texto }}</p>
+    <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
+  </div>
+} @else if (!gruposTerminados()) {
+  <h2>{{ titulo }}</h2>
+  <p class="aviso">
+    Los cruces se arman cuando terminan todos los partidos de la fase de grupos.
+    @if (pendientesGrupos() > 0) {
+      Faltan {{ pendientesGrupos() }} {{ pendientesGrupos() === 1 ? 'partido' : 'partidos' }} por finalizar.
+    } @else {
+      Todavía no hay partidos de fase de grupos.
+    }
+  </p>
+} @else if (equipos().length !== cantidad * 2) {
+  <h2>{{ titulo }}</h2>
+  <p class="aviso">
+    Por ahora los {{ titulo }} necesitan {{ cantidad * 2 }} clasificados (12 grupos de 4: los dos primeros de cada grupo y los
+    8 mejores terceros) y esta fase de grupos clasifica {{ equipos().length }}. Las reglas para otros formatos se agregarán después.
+  </p>
+} @else {
+  <h2>{{ titulo }}</h2>
+
+  @if (!editando()) {
+    @if (cruces().length > 0) {
+      <p class="nota">
+        Cruces definidos. Crea los partidos de cada uno en la pestaña "Partidos tras fase de grupos".
+      </p>
+      <app-cuadro-eliminatoria [cruces]="cruces()" [partidos]="partidos()" />
+
+      @if (puedeModificar()) {
+        @if (hayPartidosDeRonda()) {
+          <p class="aviso">Ya hay partidos creados en esta ronda: elimínalos antes de cambiar los cruces.</p>
+        } @else {
+          <div class="botones">
+            <button type="button" class="boton boton-tinta" [disabled]="trabajando()" (click)="elegirModo('random')">Random</button>
+            <button type="button" class="boton boton-tinta" [disabled]="trabajando()" (click)="elegirModo('manual')">Manual</button>
+            @if (confirmandoBorrar()) {
+              <button type="button" class="boton boton-peligro" [disabled]="trabajando()" (click)="borrar()">Sí, borrar cruces</button>
+              <button type="button" class="boton boton-borde" (click)="confirmandoBorrar.set(false)">No</button>
+            } @else {
+              <button type="button" class="boton boton-borde" (click)="confirmandoBorrar.set(true)">Borrar cruces</button>
+            }
+          </div>
+        }
+      }
+    } @else if (!puedeModificar()) {
+      <p class="aviso">El torneo finalizó: ya no se pueden definir cruces.</p>
+    } @else {
+      <p class="nota">
+        La fase de grupos terminó: hay {{ equipos().length }} equipos clasificados. Define quién juega contra quién.
+      </p>
+      <div class="modos" role="group" aria-label="Cómo armar los cruces">
+        <button type="button" class="boton boton-peto" (click)="elegirModo('random')">Random</button>
+        <button type="button" class="boton boton-tinta" (click)="elegirModo('manual')">Manual</button>
+      </div>
+    }
+  } @else {
+    <div class="bloque">
+      <div class="modos" role="group" aria-label="Cómo armar los cruces">
+        <button type="button" class="boton" [class.boton-tinta]="modo() === 'random'" [class.boton-borde]="modo() !== 'random'"
+          [attr.aria-pressed]="modo() === 'random'" (click)="elegirModo('random')">Random</button>
+        <button type="button" class="boton" [class.boton-tinta]="modo() === 'manual'" [class.boton-borde]="modo() !== 'manual'"
+          [attr.aria-pressed]="modo() === 'manual'" (click)="elegirModo('manual')">Manual</button>
+      </div>
+      <p class="nota">
+        @if (modo() === 'random') {
+          Sorteo al azar de los {{ cantidad * 2 }} clasificados, evitando que se enfrenten equipos del mismo grupo. Puedes
+          cambiar cualquier casilla antes de guardar.
+        } @else {
+          Elige el local y el visitante de cada cruce. Cada equipo se usa una sola vez.
+        }
+      </p>
+
+      <ol class="pares">
+        @for (p of borrador(); track $index; let i = $index) {
+          <li class="par" [class.choque]="mismoGrupo(p)">
+            <span class="par-numero">{{ i + 1 }}</span>
+            <select [attr.aria-label]="'Local del cruce ' + (i + 1)" [disabled]="trabajando()"
+              (change)="elegir(i, 'local', $any($event.target).value)">
+              <option value="">Local…</option>
+              @for (e of opciones(p.local); track e.idEquipo) {
+                <option [value]="e.idEquipo" [selected]="e.idEquipo === p.local">{{ etiqueta(e) }}</option>
+              }
+            </select>
+            <span class="vs">vs</span>
+            <select [attr.aria-label]="'Visitante del cruce ' + (i + 1)" [disabled]="trabajando()"
+              (change)="elegir(i, 'visitante', $any($event.target).value)">
+              <option value="">Visitante…</option>
+              @for (e of opciones(p.visitante); track e.idEquipo) {
+                <option [value]="e.idEquipo" [selected]="e.idEquipo === p.visitante">{{ etiqueta(e) }}</option>
+              }
+            </select>
+            @if (mismoGrupo(p)) {
+              <span class="alerta">Mismo grupo</span>
+            }
+          </li>
+        }
+      </ol>
+
+      <p class="progreso">{{ completos() }} de {{ cantidad }} cruces completos</p>
+      <div class="botones">
+        <button type="button" class="boton boton-peto" [disabled]="!listoParaGuardar() || trabajando()" (click)="guardar()">
+          {{ trabajando() ? 'Guardando…' : 'Guardar cruces' }}
+        </button>
+        @if (modo() === 'random') {
+          <button type="button" class="boton boton-tinta" [disabled]="trabajando()" (click)="volverASortear()">Volver a sortear</button>
+        }
+        <button type="button" class="boton boton-borde" [disabled]="trabajando()" (click)="cancelar()">Cancelar</button>
+      </div>
+    </div>
+  }
+}

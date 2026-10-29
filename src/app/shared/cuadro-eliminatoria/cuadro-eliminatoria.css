@@ -1,0 +1,139 @@
+:host {
+  display: block;
+}
+
+.cuadro-envoltura {
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.cuadro {
+  --ancho: 15rem;
+  --unidad: 6.4rem;
+  display: grid;
+  grid-template-columns: repeat(5, var(--ancho));
+  grid-template-rows: auto repeat(var(--filas), var(--unidad));
+  column-gap: 0;
+  width: max-content;
+}
+
+.titulo-ronda {
+  margin: 0 0 0.5rem;
+  padding: 0 1.5rem 0 0;
+  font-size: 1.05rem;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hueco {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0.2rem 1.5rem 0.2rem 0;
+}
+
+.hueco.conecta {
+  padding-left: 1.5rem;
+}
+
+/* lineas del cuadro: entrada desde la ronda anterior */
+.hueco.conecta::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 1.5rem;
+  border-top: 2px solid var(--linea);
+}
+
+/* lineas del cuadro: salida hacia la ronda siguiente, une cada par de cruces */
+.hueco.par-arriba::after,
+.hueco.par-abajo::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  width: 1.5rem;
+  border-right: 2px solid var(--linea);
+}
+
+.hueco.par-arriba::after {
+  top: 50%;
+  bottom: 0;
+  border-top: 2px solid var(--linea);
+}
+
+.hueco.par-abajo::after {
+  top: 0;
+  bottom: 50%;
+  border-bottom: 2px solid var(--linea);
+}
+
+.cruce {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 6px;
+  background: var(--papel);
+}
+
+.cruce.vacio {
+  border-style: dashed;
+  background: transparent;
+}
+
+.equipo {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 1.7rem;
+}
+
+.escudo {
+  --escudo: 1.5rem;
+}
+
+.nombre {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.goles {
+  min-width: 1.4rem;
+  padding: 0 0.3rem;
+  border-radius: 3px;
+  background: var(--tinta);
+  color: var(--tiza);
+  font-weight: 700;
+  text-align: center;
+}
+
+.vs {
+  display: block;
+  margin: 0.05rem 0 0.05rem 2rem;
+  color: var(--texto-suave);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.meta {
+  margin: 0.15rem 0 0;
+  color: var(--texto-suave);
+  font-size: 0.72rem;
+}
+
+.por-definir {
+  margin: 0;
+  padding: 0.35rem 0;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  text-align: center;
+}

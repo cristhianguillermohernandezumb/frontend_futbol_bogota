@@ -4,9 +4,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 
 import { mensajeDeError } from '../../core/api-error';
+import { calcularClasificados, calcularTablasDeGrupos } from '../../core/clasificacion';
+import { RONDA_32AVOS, faseDeGruposTerminada } from '../../core/eliminatorias';
 import { AuthService } from '../../core/auth.service';
 import { EspectadorService } from '../../core/espectador.service';
 import {
+  Cruce,
   EquipoInscrito,
   EstadoPartido,
   EventoPartido,
@@ -20,9 +23,10 @@ import {
   Torneo,
 } from '../../core/models';
 import { TorneoService } from '../../core/torneo.service';
+import { CuadroEliminatoria } from '../../shared/cuadro-eliminatoria/cuadro-eliminatoria';
 import { EscudoEquipo } from '../../shared/escudo-equipo/escudo-equipo';
 
-type Pestana = 'posiciones' | 'grupos' | 'partidos' | 'equipos' | 'goleadores';
+type Pestana = 'posiciones' | 'grupos' | 'cruces' | 'partidos' | 'equipos' | 'goleadores';
 
 /** Estado de carga de una seccion: cada una se pide por aparte para que un fallo no tumbe a las demas. */
 interface Seccion<T> {
@@ -57,7 +61,7 @@ function inicial<T>(datos: T): Seccion<T> {
 
 @Component({
   selector: 'app-torneo-detalle',
-  imports: [RouterLink, DatePipe, CurrencyPipe, EscudoEquipo],
+  imports: [RouterLink, DatePipe, CurrencyPipe, EscudoEquipo, CuadroEliminatoria],
   templateUrl: './torneo-detalle.html',
   styleUrl: './torneo-detalle.css',
 })
@@ -67,41 +71,32 @@ export class TorneoDetalle implements OnInit {
   private readonly espectador = inject(EspectadorService);
   protected readonly auth = inject(AuthService);
 
-  protected readonly pestanas: { id: Pestana; texto: string }[] = [
-    { id: 'posiciones', texto: 'Posiciones' },
-    { id: 'grupos', texto: 'Grupos' },
-    { id: 'partidos', texto: 'Partidos' },
-    { id: 'equipos', texto: 'Equipos' },
-    { id: 'goleadores', texto: 'Goleadores' },
-  ];
+  /** La pestana de 32avos solo aparece cuando terminan todos los partidos de la fase de grupos. */
+  protected readonly pestanas = computed<{ id: Pestana; texto: string }[]>(() => {
+    const base: { id: Pestana; texto: string }[] = [
+      { id: 'posiciones', texto: 'Posiciones' },
+      { id: 'grupos', texto: 'Grupos' },
+    ];
+    if (this.gruposTerminados()) {
+      base.push({ id: 'cruces', texto: RONDA_32AVOS.titulo });
+    }
+    return [...base, { id: 'partidos', texto: 'Partidos' }, { id: 'equipos', texto: 'Equipos' }, { id: 'goleadores', texto: 'Goleadores' }];
+  });
 
   protected readonly pestana = signal<Pestana>('posiciones');
   protected readonly torneo = signal<Seccion<Torneo | null>>(inicial(null));
   protected readonly posiciones = signal<Seccion<Posicion[]>>(inicial([]));
   protected readonly grupos = signal<Seccion<GrupoConEquipos[]>>(inicial([]));
+  protected readonly cruces = signal<Seccion<Cruce[]>>(inicial([]));
   protected readonly partidos = signal<Seccion<PartidoConEquipos[]>>(inicial([]));
   protected readonly equipos = signal<Seccion<EquipoInscrito[]>>(inicial([]));
   protected readonly goleadores = signal<Seccion<Goleador[]>>(inicial([]));
 
-  /**
-   * Cada grupo con su tabla: los equipos del grupo ordenados segun la tabla de posiciones del torneo
-   * (los equipos solo juegan dentro de su grupo, asi que sus numeros son los del grupo).
-   */
-  protected readonly tablasDeGrupos = computed(() => {
-    const porEquipo = new Map(this.posiciones().datos.map((p) => [p.idEquipo, p]));
-    return this.grupos().datos.map((g) => {
-      const filas = g.equipos
-        .map((e) => ({ idEquipo: e.idEquipo, nombre: e.nombreEquipo, pos: porEquipo.get(e.idEquipo) ?? null }))
-        .sort(
-          (a, b) =>
-            (a.pos?.posicion ?? Number.MAX_SAFE_INTEGER) - (b.pos?.posicion ?? Number.MAX_SAFE_INTEGER) ||
-            a.nombre.localeCompare(b.nombre),
-        );
-      // La fase de grupos termina cuando todos jugaron contra todos los demas del grupo.
-      const terminado = filas.length > 1 && filas.every((f) => (f.pos?.partidosJugados ?? 0) >= filas.length - 1);
-      return { idGrupo: g.idGrupo, letra: g.letra, filas, terminado };
-    });
-  });
+  /** Cada grupo con su tabla y los clasificados a la siguiente ronda (ver core/clasificacion.ts). */
+  protected readonly tablasDeGrupos = computed(() => calcularTablasDeGrupos(this.grupos().datos, this.posiciones().datos));
+  protected readonly clasificados = computed(() => calcularClasificados(this.tablasDeGrupos()));
+
+  protected readonly gruposTerminados = computed(() => faseDeGruposTerminada(this.partidos().datos));
 
   /** Partidos agrupados por jornada, en orden de fecha. */
   protected readonly jornadas = computed(() => {
@@ -129,7 +124,7 @@ export class TorneoDetalle implements OnInit {
   ngOnInit(): void {
     // Permite volver directamente a una pestana (por ejemplo desde la pagina de un equipo): /torneos/1?pestana=equipos
     const pedida = this.ruta.snapshot.queryParamMap.get('pestana');
-    if (pedida && this.pestanas.some((p) => p.id === pedida)) {
+    if (pedida && ['posiciones', 'grupos', 'cruces', 'partidos', 'equipos', 'goleadores'].includes(pedida)) {
       this.pestana.set(pedida as Pestana);
     }
     this.ruta.paramMap.subscribe((params) => {
@@ -147,6 +142,7 @@ export class TorneoDetalle implements OnInit {
     this.cargarSeguimiento();
     this.cargarPosiciones();
     this.cargarGrupos();
+    this.cargarCruces();
     this.cargarPartidos();
     this.cargarEquipos();
     this.cargarGoleadores();
@@ -254,6 +250,16 @@ export class TorneoDetalle implements OnInit {
       next: (datos) => id === this.id && this.grupos.set({ cargando: false, error: null, datos }),
       error: (err: unknown) =>
         id === this.id && this.grupos.set({ cargando: false, error: mensajeDeError(err), datos: [] }),
+    });
+  }
+
+  protected cargarCruces(): void {
+    const id = this.id;
+    this.cruces.set(inicial([]));
+    this.torneoService.cruces(id, RONDA_32AVOS.codigo).subscribe({
+      next: (datos) => id === this.id && this.cruces.set({ cargando: false, error: null, datos }),
+      error: (err: unknown) =>
+        id === this.id && this.cruces.set({ cargando: false, error: mensajeDeError(err), datos: [] }),
     });
   }
 
