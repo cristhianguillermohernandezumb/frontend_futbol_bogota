@@ -6,9 +6,12 @@ import { API_URL } from './config';
 import {
   EquipoDePartido,
   EntrenadorPublico,
+  EquipoDeGrupo,
   EquipoInscrito,
   EstadoTorneo,
   Goleador,
+  Grupo,
+  GrupoConEquipos,
   JugadorInscrito,
   Partido,
   PartidoConEquipos,
@@ -42,6 +45,23 @@ export class TorneoService {
   /** Entrenadores del equipo, solo datos publicos. */
   entrenadoresDeEquipo(idTorneo: number, idEquipo: number): Observable<EntrenadorPublico[]> {
     return this.http.get<EntrenadorPublico[]>(`${API_URL}/torneos/${idTorneo}/equipos/${idEquipo}/entrenadores`);
+  }
+
+  /** Grupos del torneo con sus equipos (el backend da los equipos de cada grupo por aparte). Consulta publica. */
+  grupos(id: number): Observable<GrupoConEquipos[]> {
+    return this.http.get<Grupo[]>(`${API_URL}/torneos/${id}/grupos`).pipe(
+      switchMap((grupos) =>
+        grupos.length === 0
+          ? of([])
+          : forkJoin(grupos.map((g) => this.http.get<EquipoDeGrupo[]>(`${API_URL}/grupos/${g.idGrupo}/equipos`))).pipe(
+              map((equipos) =>
+                grupos
+                  .map((g, i): GrupoConEquipos => ({ ...g, equipos: equipos[i] }))
+                  .sort((a, b) => a.letra.localeCompare(b.letra) || a.idGrupo - b.idGrupo),
+              ),
+            ),
+      ),
+    );
   }
 
   posiciones(id: number): Observable<Posicion[]> {

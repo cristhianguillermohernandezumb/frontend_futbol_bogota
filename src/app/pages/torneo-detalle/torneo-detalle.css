@@ -370,3 +370,58 @@
 .cabecera-datos .aviso {
   color: var(--tinta);
 }
+
+.grupos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grupo {
+  border: 1.5px solid var(--linea);
+  border-radius: 6px;
+  background: var(--papel);
+  overflow: hidden;
+}
+
+.grupo-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  font-size: 1.3rem;
+  border-bottom: 1.5px solid var(--linea);
+}
+
+.grupo-letra {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--tinta);
+  color: var(--tiza);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.grupo-tabla {
+  font-size: 0.95rem;
+}
+
+.grupo-tabla th,
+.grupo-tabla td {
+  padding: 0.45rem 0.5rem;
+}
+
+.grupo-tabla tbody tr:first-child {
+  background: transparent;
+}
+
+.grupo-tabla tbody tr.clasifica {
+  background: #e6f2eb;
+}

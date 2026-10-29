@@ -348,3 +348,23 @@ export interface ErrorApi {
   mensaje: string;
   detalles?: Record<string, string>;
 }
+
+/** Grupo de un torneo (letra A, B, C...) con los equipos que lo componen. */
+export interface Grupo {
+  idGrupo: number;
+  fase: number;
+  letra: string;
+  idTorneo: number;
+}
+
+export interface EquipoDeGrupo {
+  idGrupo: number;
+  letraGrupo: string;
+  idTorneo: number;
+  idEquipo: number;
+  nombreEquipo: string;
+}
+
+export interface GrupoConEquipos extends Grupo {
+  equipos: EquipoDeGrupo[];
+}

@@ -117,6 +117,59 @@
         }
       }
 
+      @case ('grupos') {
+        @if (grupos().cargando) {
+          <p class="mensaje" role="status">Cargando grupos…</p>
+        } @else if (grupos().error; as mensaje) {
+          <div class="aviso aviso-error" role="alert">
+            <p>{{ mensaje }}</p>
+            <button type="button" class="enlace" (click)="cargarGrupos()">Reintentar</button>
+          </div>
+        } @else if (grupos().datos.length === 0) {
+          <p class="mensaje">Todavía no se han conformado los grupos de este torneo.</p>
+        } @else {
+          <ul class="grupos">
+            @for (g of tablasDeGrupos(); track g.idGrupo) {
+              <li class="grupo">
+                <h2 class="grupo-titulo">
+                  <span class="grupo-letra" aria-hidden="true">{{ g.letra }}</span>
+                  Grupo {{ g.letra }}
+                </h2>
+                <table class="tabla grupo-tabla">
+                  <caption class="solo-lectores">Tabla del grupo {{ g.letra }}</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col" class="izq">Equipo</th>
+                      <th scope="col" title="Partidos jugados">PJ</th>
+                      <th scope="col" title="Diferencia de goles">DG</th>
+                      <th scope="col" title="Puntos" class="pts">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (f of g.filas; track f.idEquipo; let i = $index) {
+                      <tr [class.clasifica]="g.terminado && i < 2">
+                        <td>{{ i + 1 }}</td>
+                        <th scope="row" class="izq">
+                          <a class="equipo-enlace" [routerLink]="['/torneos', t.idTorneo, 'equipos', f.idEquipo]">{{ f.nombre }}</a>
+                        </th>
+                        <td>{{ f.pos?.partidosJugados ?? 0 }}</td>
+                        <td>{{ (f.pos?.diferenciaGoles ?? 0) > 0 ? '+' + f.pos?.diferenciaGoles : (f.pos?.diferenciaGoles ?? 0) }}</td>
+                        <td class="pts">{{ f.pos?.puntos ?? 0 }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </li>
+            }
+          </ul>
+          <p class="nota">
+            Cada grupo se juega todos contra todos. Cuando termina, los dos primeros de cada grupo aparecen
+            resaltados.
+          </p>
+        }
+      }
+
       @case ('partidos') {
         @if (partidos().cargando) {
           <p class="mensaje" role="status">Cargando partidos…</p>

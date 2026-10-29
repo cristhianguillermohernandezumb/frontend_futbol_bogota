@@ -13,6 +13,7 @@ import {
   TipoEvento,
   EstadoTorneo,
   Goleador,
+  GrupoConEquipos,
   Modalidad,
   PartidoConEquipos,
   Posicion,
@@ -21,7 +22,7 @@ import {
 import { TorneoService } from '../../core/torneo.service';
 import { EscudoEquipo } from '../../shared/escudo-equipo/escudo-equipo';
 
-type Pestana = 'posiciones' | 'partidos' | 'equipos' | 'goleadores';
+type Pestana = 'posiciones' | 'grupos' | 'partidos' | 'equipos' | 'goleadores';
 
 /** Estado de carga de una seccion: cada una se pide por aparte para que un fallo no tumbe a las demas. */
 interface Seccion<T> {
@@ -68,6 +69,7 @@ export class TorneoDetalle implements OnInit {
 
   protected readonly pestanas: { id: Pestana; texto: string }[] = [
     { id: 'posiciones', texto: 'Posiciones' },
+    { id: 'grupos', texto: 'Grupos' },
     { id: 'partidos', texto: 'Partidos' },
     { id: 'equipos', texto: 'Equipos' },
     { id: 'goleadores', texto: 'Goleadores' },
@@ -76,9 +78,30 @@ export class TorneoDetalle implements OnInit {
   protected readonly pestana = signal<Pestana>('posiciones');
   protected readonly torneo = signal<Seccion<Torneo | null>>(inicial(null));
   protected readonly posiciones = signal<Seccion<Posicion[]>>(inicial([]));
+  protected readonly grupos = signal<Seccion<GrupoConEquipos[]>>(inicial([]));
   protected readonly partidos = signal<Seccion<PartidoConEquipos[]>>(inicial([]));
   protected readonly equipos = signal<Seccion<EquipoInscrito[]>>(inicial([]));
   protected readonly goleadores = signal<Seccion<Goleador[]>>(inicial([]));
+
+  /**
+   * Cada grupo con su tabla: los equipos del grupo ordenados segun la tabla de posiciones del torneo
+   * (los equipos solo juegan dentro de su grupo, asi que sus numeros son los del grupo).
+   */
+  protected readonly tablasDeGrupos = computed(() => {
+    const porEquipo = new Map(this.posiciones().datos.map((p) => [p.idEquipo, p]));
+    return this.grupos().datos.map((g) => {
+      const filas = g.equipos
+        .map((e) => ({ idEquipo: e.idEquipo, nombre: e.nombreEquipo, pos: porEquipo.get(e.idEquipo) ?? null }))
+        .sort(
+          (a, b) =>
+            (a.pos?.posicion ?? Number.MAX_SAFE_INTEGER) - (b.pos?.posicion ?? Number.MAX_SAFE_INTEGER) ||
+            a.nombre.localeCompare(b.nombre),
+        );
+      // La fase de grupos termina cuando todos jugaron contra todos los demas del grupo.
+      const terminado = filas.length > 1 && filas.every((f) => (f.pos?.partidosJugados ?? 0) >= filas.length - 1);
+      return { idGrupo: g.idGrupo, letra: g.letra, filas, terminado };
+    });
+  });
 
   /** Partidos agrupados por jornada, en orden de fecha. */
   protected readonly jornadas = computed(() => {
@@ -123,6 +146,7 @@ export class TorneoDetalle implements OnInit {
     this.cargarTorneo();
     this.cargarSeguimiento();
     this.cargarPosiciones();
+    this.cargarGrupos();
     this.cargarPartidos();
     this.cargarEquipos();
     this.cargarGoleadores();
@@ -220,6 +244,16 @@ export class TorneoDetalle implements OnInit {
       next: (datos) => id === this.id && this.posiciones.set({ cargando: false, error: null, datos }),
       error: (err: unknown) =>
         id === this.id && this.posiciones.set({ cargando: false, error: mensajeDeError(err), datos: [] }),
+    });
+  }
+
+  protected cargarGrupos(): void {
+    const id = this.id;
+    this.grupos.set(inicial([]));
+    this.torneoService.grupos(id).subscribe({
+      next: (datos) => id === this.id && this.grupos.set({ cargando: false, error: null, datos }),
+      error: (err: unknown) =>
+        id === this.id && this.grupos.set({ cargando: false, error: mensajeDeError(err), datos: [] }),
     });
   }
 
