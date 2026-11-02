@@ -16,6 +16,7 @@ import {
   JugadorInscrito,
   Partido,
   PartidoConEquipos,
+  Penales,
   Posicion,
   Torneo,
 } from './models';
@@ -46,6 +47,16 @@ export class TorneoService {
   /** Entrenadores del equipo, solo datos publicos. */
   entrenadoresDeEquipo(idTorneo: number, idEquipo: number): Observable<EntrenadorPublico[]> {
     return this.http.get<EntrenadorPublico[]>(`${API_URL}/torneos/${idTorneo}/equipos/${idEquipo}/entrenadores`);
+  }
+
+  /** Tanda de penales de un partido (consulta publica). */
+  penales(idPartido: number): Observable<Penales> {
+    return this.http.get<Penales>(`${API_URL}/partidos/${idPartido}/penales`);
+  }
+
+  /** Tandas de penales de todos los partidos del torneo que tuvieron una. */
+  penalesDeTorneo(idTorneo: number): Observable<Penales[]> {
+    return this.http.get<Penales[]>(`${API_URL}/torneos/${idTorneo}/penales`);
   }
 
   /** Cruces de una ronda eliminatoria (consulta publica). */

@@ -8,6 +8,7 @@ import { Alineacion, EquipoDePartido, EstadoPartido, Partido, Torneo } from '../
 import { OrganizadorService } from '../../../core/organizador.service';
 import { TorneoService } from '../../../core/torneo.service';
 import { AlineacionEquipo } from './alineacion-equipo/alineacion-equipo';
+import { TandaPenales } from '../../../shared/tanda-penales/tanda-penales';
 import { EventosPartido } from './eventos-partido/eventos-partido';
 
 interface Transicion {
@@ -34,7 +35,7 @@ const ETIQUETA_ESTADO: Record<EstadoPartido, string> = {
 
 @Component({
   selector: 'app-partido-gestion',
-  imports: [RouterLink, DatePipe, AlineacionEquipo, EventosPartido],
+  imports: [RouterLink, DatePipe, AlineacionEquipo, EventosPartido, TandaPenales],
   templateUrl: './partido-gestion.html',
   styleUrl: './partido-gestion.css',
 })
@@ -70,6 +71,32 @@ export class PartidoGestion implements OnInit {
   protected readonly conMarcador = computed(() => {
     const p = this.partido();
     return !!p && (p.estado === 'EN_JUEGO' || p.estado === 'FINALIZADO');
+  });
+
+  /** Partido de eliminatoria que va empatado: se define con penales (y no se puede finalizar sin ganador). */
+  protected readonly hayTanda = computed(() => {
+    const p = this.partido();
+    return (
+      !!p &&
+      p.fase.trim().toLowerCase() !== 'grupos' &&
+      (p.estado === 'EN_JUEGO' || p.estado === 'FINALIZADO') &&
+      p.golesLocal === p.golesVisitante
+    );
+  });
+
+  protected readonly esEliminatoria = computed(() => {
+    const p = this.partido();
+    return !!p && p.fase.trim().toLowerCase() !== 'grupos';
+  });
+
+  protected readonly equipoLocal = computed(() => {
+    const e = this.local();
+    return e ? { idEquipo: e.idEquipo, nombre: e.nombreEquipo } : null;
+  });
+
+  protected readonly equipoVisitante = computed(() => {
+    const e = this.visitante();
+    return e ? { idEquipo: e.idEquipo, nombre: e.nombreEquipo } : null;
   });
 
   private id = 0;

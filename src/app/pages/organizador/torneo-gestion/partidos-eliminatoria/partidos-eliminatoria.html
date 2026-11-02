@@ -54,6 +54,17 @@
           </div>
 
           @if (f.partido; as p) {
+            @if (penalDe(p.idPartido); as pe) {
+              <p class="penales-nota">
+                Penales: {{ pe.golesLocal }} - {{ pe.golesVisitante }}
+                @if (pe.ganador) {
+                  · gana {{ pe.ganador === 'LOCAL' ? f.cruce.nombreLocal : f.cruce.nombreVisitante }}
+                }
+              </p>
+            }
+            @if (tandaPendiente(p)) {
+              <p class="aviso">Empate: define la tanda de penales para poder finalizar el partido.</p>
+            }
             <div class="fila-acciones">
               <span [class]="'estado estado-' + p.estado.toLowerCase()">{{ etiquetaEstado(p.estado) }}</span>
               @for (t of transiciones(p); track t.valor) {
@@ -64,6 +75,12 @@
               <a class="boton boton-tinta boton-chico" [routerLink]="['/organizador/partidos', p.idPartido]">
                 {{ p.estado === 'EN_JUEGO' ? 'Panel en vivo' : 'Alineación' }}
               </a>
+              @if (empatado(p) || penalDe(p.idPartido)) {
+                <button type="button" class="boton boton-peto boton-chico" [attr.aria-expanded]="conPenales() === p.idPartido"
+                  (click)="alternarPenales(p.idPartido)">
+                  Penales
+                </button>
+              }
               <button type="button" class="boton boton-borde boton-chico" [attr.aria-expanded]="conArbitros() === p.idPartido"
                 (click)="alternarArbitros(p.idPartido)">
                 Árbitros
@@ -79,6 +96,11 @@
                 }
               }
             </div>
+            @if (conPenales() === p.idPartido) {
+              <app-tanda-penales [idPartido]="p.idPartido" [local]="{ idEquipo: f.cruce.idLocal, nombre: f.cruce.nombreLocal }"
+                [visitante]="{ idEquipo: f.cruce.idVisitante, nombre: f.cruce.nombreVisitante }" [editable]="p.estado === 'EN_JUEGO'"
+                [version]="p.golesLocal + p.golesVisitante" (cambio)="recargarPenales()" />
+            }
             @if (conArbitros() === p.idPartido) {
               <app-arbitros-partido [idPartido]="p.idPartido" [estadoPartido]="p.estado" />
             }

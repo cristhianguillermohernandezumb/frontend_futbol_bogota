@@ -19,6 +19,7 @@ import {
   GrupoConEquipos,
   Modalidad,
   PartidoConEquipos,
+  Penales,
   Posicion,
   Torneo,
 } from '../../core/models';
@@ -88,6 +89,7 @@ export class TorneoDetalle implements OnInit {
   protected readonly posiciones = signal<Seccion<Posicion[]>>(inicial([]));
   protected readonly grupos = signal<Seccion<GrupoConEquipos[]>>(inicial([]));
   protected readonly cruces = signal<Seccion<Cruce[]>>(inicial([]));
+  protected readonly penales = signal<Penales[]>([]);
   protected readonly partidos = signal<Seccion<PartidoConEquipos[]>>(inicial([]));
   protected readonly equipos = signal<Seccion<EquipoInscrito[]>>(inicial([]));
   protected readonly goleadores = signal<Seccion<Goleador[]>>(inicial([]));
@@ -143,6 +145,7 @@ export class TorneoDetalle implements OnInit {
     this.cargarPosiciones();
     this.cargarGrupos();
     this.cargarCruces();
+    this.cargarPenales();
     this.cargarPartidos();
     this.cargarEquipos();
     this.cargarGoleadores();
@@ -251,6 +254,19 @@ export class TorneoDetalle implements OnInit {
       error: (err: unknown) =>
         id === this.id && this.grupos.set({ cargando: false, error: mensajeDeError(err), datos: [] }),
     });
+  }
+
+  protected cargarPenales(): void {
+    const id = this.id;
+    // Es un dato extra (marcador de penales): si falla, el resto del torneo se ve igual.
+    this.torneoService.penalesDeTorneo(id).subscribe({
+      next: (datos) => id === this.id && this.penales.set(datos),
+      error: () => id === this.id && this.penales.set([]),
+    });
+  }
+
+  protected penalDe(idPartido: number): Penales | undefined {
+    return this.penales().find((x) => x.idPartido === idPartido && x.tiros.length > 0);
   }
 
   protected cargarCruces(): void {

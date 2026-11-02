@@ -391,3 +391,28 @@ export interface CruceRequest {
   idLocal: number;
   idVisitante: number;
 }
+
+/** Un tiro de la tanda de penales. */
+export interface TiroPenal {
+  orden: number;
+  idEquipo: number;
+  rol: 'LOCAL' | 'VISITANTE';
+  convertido: boolean;
+}
+
+/**
+ * Tanda de penales de un partido de eliminatoria empatado. siguiente = quien patea el proximo tiro;
+ * ganador = quien gano la tanda (null mientras siga abierta).
+ */
+export interface Penales {
+  idPartido: number;
+  idLocal: number;
+  idVisitante: number;
+  aplica: boolean;
+  tiros: TiroPenal[];
+  golesLocal: number;
+  golesVisitante: number;
+  siguiente: 'LOCAL' | 'VISITANTE' | null;
+  ganador: 'LOCAL' | 'VISITANTE' | null;
+  idGanador: number | null;
+}

@@ -52,6 +52,9 @@
             </p>
           } @else {
             <p>Al finalizar ya no se podrán registrar ni borrar eventos, y el resultado cuenta en la tabla de posiciones.</p>
+            @if (esEliminatoria()) {
+              <p>Si el partido sigue empatado, antes debes completar la tanda de penales hasta que haya un ganador.</p>
+            }
           }
           <div class="botones">
             @for (t of transiciones(); track t.valor) {
@@ -96,6 +99,13 @@
         <app-eventos-partido [partido]="p" [local]="local()!" [visitante]="visitante()!" [alineacion]="alineacion()"
           [editable]="esDueno()" (cambio)="recargarPartido()" />
       </section>
+
+      @if (hayTanda()) {
+        <section class="seccion" aria-labelledby="titulo-eventos">
+          <app-tanda-penales [idPartido]="p.idPartido" [local]="equipoLocal()!" [visitante]="equipoVisitante()!"
+            [editable]="esDueno() && p.estado === 'EN_JUEGO'" [version]="p.golesLocal + p.golesVisitante" />
+        </section>
+      }
     }
   }
 }

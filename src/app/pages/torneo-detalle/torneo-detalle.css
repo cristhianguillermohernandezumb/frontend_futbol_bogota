@@ -492,3 +492,9 @@
 .tercero-pasa {
   color: #14653d;
 }
+
+.penales-nota {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  font-weight: 600;
+}

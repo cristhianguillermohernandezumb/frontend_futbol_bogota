@@ -1,0 +1,71 @@
+<section class="tanda" aria-labelledby="titulo-tanda">
+  <header class="tanda-cabecera">
+    <h3 id="titulo-tanda">Tanda de penales</h3>
+    @if (datos(); as d) {
+      @if (d.ganador) {
+        <span class="etiqueta etiqueta-fin">Definida</span>
+      } @else if (enMuerteSubita()) {
+        <span class="etiqueta etiqueta-subita">Muerte súbita</span>
+      } @else {
+        <span class="etiqueta">Tiro {{ Math.floor(d.tiros.length / 2) + 1 }} de 5</span>
+      }
+    }
+  </header>
+
+  @if (cargando() && !datos()) {
+    <p class="vacio" role="status">Cargando penales…</p>
+  } @else if (datos(); as d) {
+    @if (!d.aplica && d.tiros.length === 0) {
+      <p class="vacio">Los penales solo se usan si un partido de eliminatoria termina empatado.</p>
+    } @else {
+      <div class="marcador-tanda" aria-live="polite">
+        <span class="numero">{{ d.golesLocal }}</span>
+        <span class="separador">-</span>
+        <span class="numero">{{ d.golesVisitante }}</span>
+      </div>
+
+      <div class="filas">
+        @for (f of filas(); track f.rol) {
+          <div class="fila" [class.gana]="f.gana" [class.turno]="f.puedePatear">
+            <div class="equipo">
+              <app-escudo-equipo class="escudo" [idEquipo]="f.equipo.idEquipo" [nombre]="f.equipo.nombre" />
+              <span class="nombre">{{ f.equipo.nombre }}</span>
+              <span class="goles-equipo" [attr.aria-label]="'Penales convertidos: ' + f.goles">{{ f.goles }}</span>
+            </div>
+            <ol class="barra" [attr.aria-label]="'Tiros de ' + f.equipo.nombre">
+              @for (t of f.tiros; track $index) {
+                <li [class]="'tiro tiro-' + t" [attr.aria-label]="'Tiro ' + ($index + 1) + ': ' + etiqueta(t)">
+                  @if (t === 'gol') {
+                    <span aria-hidden="true">✓</span>
+                  } @else if (t === 'fallo') {
+                    <span aria-hidden="true">✕</span>
+                  }
+                </li>
+              }
+            </ol>
+            @if (editable()) {
+              <div class="botones">
+                <button type="button" class="boton boton-gol" [disabled]="!f.puedePatear" (click)="patear(true)">Gol</button>
+                <button type="button" class="boton boton-nogol" [disabled]="!f.puedePatear" (click)="patear(false)">No gol</button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      @if (nombreGanador(); as g) {
+        <p class="ganador" role="status">Gana {{ g }} por penales ({{ d.golesLocal }} - {{ d.golesVisitante }}).</p>
+      } @else if (editable() && d.siguiente) {
+        <p class="turno-texto">Patea {{ d.siguiente === 'LOCAL' ? local().nombre : visitante().nombre }}.</p>
+      }
+
+      @if (editable() && d.tiros.length > 0) {
+        <button type="button" class="enlace" [disabled]="trabajando()" (click)="deshacer()">Deshacer el último tiro</button>
+      }
+    }
+  }
+
+  @if (error(); as texto) {
+    <p class="aviso aviso-error" role="alert">{{ texto }}</p>
+  }
+</section>

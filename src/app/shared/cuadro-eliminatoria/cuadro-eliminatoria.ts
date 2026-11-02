@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 
-import { Cruce, PartidoConEquipos } from '../../core/models';
+import { Cruce, PartidoConEquipos, Penales } from '../../core/models';
 import { RONDA_32AVOS, partidoDeCruce } from '../../core/eliminatorias';
 import { EscudoEquipo } from '../escudo-equipo/escudo-equipo';
 
@@ -9,6 +9,9 @@ interface Equipo {
   idEquipo: number;
   nombre: string;
   goles: number | null;
+  /** Penales convertidos, si el partido se definio en tanda. */
+  penales: number | null;
+  gana: boolean;
 }
 
 interface Tarjeta {
@@ -42,6 +45,7 @@ const RONDAS = ['32avos de final', 'Octavos de final', 'Cuartos de final', 'Semi
 export class CuadroEliminatoria {
   readonly cruces = input.required<Cruce[]>();
   readonly partidos = input<PartidoConEquipos[]>([]);
+  readonly penales = input<Penales[]>([]);
 
   protected readonly columnas = computed<Columna[]>(() => {
     const total = RONDA_32AVOS.cruces;
@@ -55,6 +59,10 @@ export class CuadroEliminatoria {
         const cruce = r === 0 ? ordenados.find((c) => c.orden === i + 1) : undefined;
         const partido = cruce ? partidoDeCruce(this.partidos(), cruce) : undefined;
         const marcador = !!partido && (partido.estado === 'EN_JUEGO' || partido.estado === 'FINALIZADO');
+        const tanda = partido ? this.penales().find((x) => x.idPartido === partido.idPartido && x.tiros.length > 0) : undefined;
+        const terminado = partido?.estado === 'FINALIZADO';
+        const ganaLocal = !!partido && terminado && (partido.golesLocal > partido.golesVisitante || (partido.golesLocal === partido.golesVisitante && tanda?.ganador === 'LOCAL'));
+        const ganaVisitante = !!partido && terminado && (partido.golesVisitante > partido.golesLocal || (partido.golesLocal === partido.golesVisitante && tanda?.ganador === 'VISITANTE'));
         tarjetas.push({
           fila: i * alto + 1,
           alto,
@@ -63,8 +71,8 @@ export class CuadroEliminatoria {
           etiqueta: r === 0 ? `Cruce ${i + 1}` : r === RONDAS.length - 1 ? 'Final' : `${RONDAS[r]} · ${i + 1}`,
           equipos: cruce
             ? [
-                { idEquipo: cruce.idLocal, nombre: cruce.nombreLocal, goles: marcador ? partido.golesLocal : null },
-                { idEquipo: cruce.idVisitante, nombre: cruce.nombreVisitante, goles: marcador ? partido.golesVisitante : null },
+                { idEquipo: cruce.idLocal, nombre: cruce.nombreLocal, goles: marcador ? partido.golesLocal : null, penales: marcador && tanda ? tanda.golesLocal : null, gana: ganaLocal },
+                { idEquipo: cruce.idVisitante, nombre: cruce.nombreVisitante, goles: marcador ? partido.golesVisitante : null, penales: marcador && tanda ? tanda.golesVisitante : null, gana: ganaVisitante },
               ]
             : null,
           fecha: partido?.fechaHora ?? null,

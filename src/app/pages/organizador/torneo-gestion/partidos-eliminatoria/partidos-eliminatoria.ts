@@ -6,10 +6,11 @@ import { Observable, forkJoin } from 'rxjs';
 
 import { mensajeDeError } from '../../../../core/api-error';
 import { RONDA_32AVOS, partidoDeCruce } from '../../../../core/eliminatorias';
-import { Cancha, Cruce, EstadoPartido, PartidoConEquipos, Torneo } from '../../../../core/models';
+import { Cancha, Cruce, EstadoPartido, PartidoConEquipos, Penales, Torneo } from '../../../../core/models';
 import { OrganizadorService } from '../../../../core/organizador.service';
 import { TorneoService } from '../../../../core/torneo.service';
 import { EscudoEquipo } from '../../../../shared/escudo-equipo/escudo-equipo';
+import { TandaPenales } from '../../../../shared/tanda-penales/tanda-penales';
 import { ArbitrosPartido } from '../arbitros-partido/arbitros-partido';
 
 interface Mensaje {
@@ -43,7 +44,7 @@ const ETIQUETA_ESTADO: Record<EstadoPartido, string> = {
 /** Partidos de la primera eliminatoria: los equipos ya vienen de los cruces; aqui solo se agrega lo del partido. */
 @Component({
   selector: 'app-partidos-eliminatoria',
-  imports: [ReactiveFormsModule, DatePipe, RouterLink, ArbitrosPartido, EscudoEquipo],
+  imports: [ReactiveFormsModule, DatePipe, RouterLink, ArbitrosPartido, EscudoEquipo, TandaPenales],
   templateUrl: './partidos-eliminatoria.html',
   styleUrl: './partidos-eliminatoria.css',
 })
@@ -59,6 +60,9 @@ export class PartidosEliminatoria implements OnInit {
   protected readonly cruces = signal<Cruce[]>([]);
   protected readonly partidos = signal<PartidoConEquipos[]>([]);
   protected readonly canchas = signal<Cancha[]>([]);
+  protected readonly penales = signal<Penales[]>([]);
+  /** Partido con la tanda de penales abierta. */
+  protected readonly conPenales = signal<number | null>(null);
   protected readonly cargando = signal(true);
   protected readonly errorCarga = signal<string | null>(null);
   protected readonly mensaje = signal<Mensaje | null>(null);
@@ -97,11 +101,13 @@ export class PartidosEliminatoria implements OnInit {
       cruces: this.torneoService.cruces(id, RONDA_32AVOS.codigo),
       partidos: this.torneoService.partidos(id),
       canchas: this.organizador.canchas(),
+      penales: this.torneoService.penalesDeTorneo(id),
     }).subscribe({
       next: (r) => {
         this.cruces.set(r.cruces);
         this.partidos.set(r.partidos);
         this.canchas.set(r.canchas);
+        this.penales.set(r.penales);
         this.cargando.set(false);
       },
       error: (err: unknown) => {
@@ -164,6 +170,28 @@ export class PartidosEliminatoria implements OnInit {
   protected eliminar(p: PartidoConEquipos): void {
     this.eliminando.set(null);
     this.ejecutar(this.organizador.eliminarPartido(p.idPartido), 'Partido eliminado.');
+  }
+
+  protected penalDe(idPartido: number): Penales | undefined {
+    return this.penales().find((x) => x.idPartido === idPartido && x.tiros.length > 0);
+  }
+
+  /** Partido de eliminatoria empatado que ya empezo (o ya tiene tanda): se define con penales. */
+  protected empatado(p: PartidoConEquipos): boolean {
+    return (p.estado === 'EN_JUEGO' || p.estado === 'FINALIZADO') && p.golesLocal === p.golesVisitante;
+  }
+
+  protected tandaPendiente(p: PartidoConEquipos): boolean {
+    return p.estado === 'EN_JUEGO' && this.empatado(p) && !this.penalDe(p.idPartido)?.ganador;
+  }
+
+  protected alternarPenales(id: number): void {
+    this.mensaje.set(null);
+    this.conPenales.set(this.conPenales() === id ? null : id);
+  }
+
+  protected recargarPenales(): void {
+    this.torneoService.penalesDeTorneo(this.torneo().idTorneo).subscribe({ next: (l) => this.penales.set(l) });
   }
 
   protected alternarArbitros(id: number): void {

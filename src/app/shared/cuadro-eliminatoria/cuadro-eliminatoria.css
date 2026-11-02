@@ -137,3 +137,17 @@
   font-size: 0.85rem;
   text-align: center;
 }
+
+.equipo.gana .nombre {
+  font-weight: 800;
+}
+
+.equipo:not(.gana) .nombre {
+  font-weight: 600;
+}
+
+.penales {
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+  font-weight: 700;
+}

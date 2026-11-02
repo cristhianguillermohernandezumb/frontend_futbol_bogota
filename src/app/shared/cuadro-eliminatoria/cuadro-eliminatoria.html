@@ -8,11 +8,14 @@
           <article class="cruce" [class.vacio]="!t.equipos" [attr.aria-label]="t.etiqueta">
             @if (t.equipos; as eq) {
               @for (e of eq; track e.idEquipo; let i = $index) {
-                <div class="equipo">
+                <div class="equipo" [class.gana]="e.gana">
                   <app-escudo-equipo class="escudo" [idEquipo]="e.idEquipo" [nombre]="e.nombre" />
                   <span class="nombre">{{ e.nombre }}</span>
                   @if (e.goles !== null) {
                     <span class="goles">{{ e.goles }}</span>
+                  }
+                  @if (e.penales !== null) {
+                    <span class="penales" [attr.aria-label]="'Penales: ' + e.penales" title="Penales">({{ e.penales }})</span>
                   }
                 </div>
                 @if (i === 0) {

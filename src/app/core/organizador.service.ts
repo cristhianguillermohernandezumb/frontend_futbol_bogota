@@ -31,6 +31,7 @@ import {
   JugadorRequest,
   Partido,
   PartidoRequest,
+  Penales,
   Torneo,
   TorneoRequest,
 } from './models';
@@ -273,5 +274,16 @@ export class OrganizadorService {
 
   borrarCruces(idTorneo: number, ronda: string): Observable<void> {
     return this.http.delete<void>(`${API_URL}/torneos/${idTorneo}/cruces/${ronda}`);
+  }
+
+  // Penales
+
+  registrarPenal(idPartido: number, convertido: boolean): Observable<Penales> {
+    const params = new HttpParams().set('convertido', convertido);
+    return this.http.post<Penales>(`${API_URL}/partidos/${idPartido}/penales`, null, { params });
+  }
+
+  deshacerPenal(idPartido: number): Observable<Penales> {
+    return this.http.delete<Penales>(`${API_URL}/partidos/${idPartido}/penales/ultimo`);
   }
 }

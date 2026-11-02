@@ -1,0 +1,196 @@
+:host {
+  display: block;
+}
+
+.tanda {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 6px;
+  background: var(--papel);
+}
+
+.tanda-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+h3 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.etiqueta {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--linea);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.etiqueta-subita {
+  background: #f3dfb8;
+  color: #6b4608;
+}
+
+.etiqueta-fin {
+  background: #cfe8d9;
+  color: #14653d;
+}
+
+.vacio {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+.marcador-tanda {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem;
+  font-family: var(--fuente-titulo);
+  font-size: 2.6rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.marcador-tanda .numero {
+  min-width: 3.2rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: var(--tinta);
+  color: var(--tiza);
+  text-align: center;
+}
+
+.filas {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) auto auto;
+  gap: 0.8rem 1rem;
+  align-items: center;
+  padding: 0.6rem 0.7rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 6px;
+}
+
+.fila.turno {
+  border-color: var(--peto);
+  box-shadow: 0 0 0 2px #ffd7bd;
+}
+
+.fila.gana {
+  border-color: #14653d;
+  background: #e6f2eb;
+}
+
+.equipo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.escudo {
+  --escudo: 2.2rem;
+}
+
+.nombre {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+.goles-equipo {
+  font-family: var(--fuente-titulo);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* la barra que se va llenando con cada tiro */
+.barra {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tiro {
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 2px solid var(--linea);
+  border-radius: 50%;
+  background: transparent;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.tiro-gol {
+  border-color: #14653d;
+  background: #14653d;
+  color: #fff;
+}
+
+.tiro-fallo {
+  border-color: #a5281b;
+  background: #a5281b;
+  color: #fff;
+}
+
+.tiro-turno {
+  border-color: var(--peto);
+  border-style: dashed;
+}
+
+.botones {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.boton-gol {
+  background: #14653d;
+  border-color: #14653d;
+  color: #fff;
+}
+
+.boton-nogol {
+  background: #a5281b;
+  border-color: #a5281b;
+  color: #fff;
+}
+
+.boton-gol:disabled,
+.boton-nogol:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.ganador {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-left: 4px solid #14653d;
+  background: #e6f2eb;
+  font-weight: 700;
+}
+
+.turno-texto {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+@media (max-width: 760px) {
+  .fila {
+    grid-template-columns: 1fr;
+  }
+}
