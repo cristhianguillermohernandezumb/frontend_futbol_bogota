@@ -5,7 +5,8 @@ import { RouterLink } from '@angular/router';
 import { Observable, forkJoin } from 'rxjs';
 
 import { mensajeDeError } from '../../../../core/api-error';
-import { RONDA_32AVOS, partidoDeCruce } from '../../../../core/eliminatorias';
+import { RONDAS_ELIMINATORIA, calcularRondas } from '../../../../core/eliminatorias';
+import { RONDA_32AVOS } from '../../../../core/eliminatorias';
 import { Cancha, Cruce, EstadoPartido, PartidoConEquipos, Penales, Torneo } from '../../../../core/models';
 import { OrganizadorService } from '../../../../core/organizador.service';
 import { TorneoService } from '../../../../core/torneo.service';
@@ -41,7 +42,24 @@ const ETIQUETA_ESTADO: Record<EstadoPartido, string> = {
   APLAZADO: 'Aplazado',
 };
 
-/** Partidos de la primera eliminatoria: los equipos ya vienen de los cruces; aqui solo se agrega lo del partido. */
+/** Una fila del cuadro con la forma que usa la plantilla (un cruce con su partido y su ganador). */
+interface Fila {
+  ronda: number;
+  cruce: { idCruce: number; orden: number; idLocal: number; nombreLocal: string; idVisitante: number; nombreVisitante: string };
+  partido: PartidoConEquipos | undefined;
+  listo: boolean;
+  pasa: string | null;
+}
+
+interface GrupoRonda {
+  titulo: string;
+  filas: Fila[];
+}
+
+/**
+ * Partidos de la eliminatoria: los equipos de 32avos vienen de los cruces y los de las rondas siguientes salen solos de
+ * los ganadores (por goles o por penales); aqui solo se agrega fecha, cancha, arbitros, alineacion y eventos.
+ */
 @Component({
   selector: 'app-partidos-eliminatoria',
   imports: [ReactiveFormsModule, DatePipe, RouterLink, ArbitrosPartido, EscudoEquipo, TandaPenales],
@@ -56,6 +74,7 @@ export class PartidosEliminatoria implements OnInit {
   private readonly torneoService = inject(TorneoService);
 
   protected readonly titulo = RONDA_32AVOS.titulo;
+  protected readonly tituloGeneral = 'la eliminatoria';
 
   protected readonly cruces = signal<Cruce[]>([]);
   protected readonly partidos = signal<PartidoConEquipos[]>([]);
@@ -76,12 +95,30 @@ export class PartidosEliminatoria implements OnInit {
 
   protected readonly puedeProgramar = computed(() => this.torneo().estado !== 'FINALIZADO');
 
-  /** Cada cruce con su partido (si ya se creo). */
-  protected readonly filas = computed(() =>
-    [...this.cruces()]
-      .sort((a, b) => a.orden - b.orden)
-      .map((c) => ({ cruce: c, partido: partidoDeCruce(this.partidos(), c) })),
-  );
+  /** Todas las rondas, con los equipos que ya se conocen. */
+  protected readonly grupos = computed<GrupoRonda[]>(() => {
+    if (this.cruces().length === 0) {
+      return [];
+    }
+    return calcularRondas(this.cruces(), this.partidos(), this.penales()).map((cruces, r) => ({
+      titulo: RONDAS_ELIMINATORIA[r].titulo,
+      filas: cruces.map((c): Fila => ({
+        ronda: r,
+        cruce: {
+          idCruce: r * 100 + c.orden,
+          orden: c.orden,
+          idLocal: c.local?.idEquipo ?? 0,
+          nombreLocal: c.local?.nombre ?? 'Por definir',
+          idVisitante: c.visitante?.idEquipo ?? 0,
+          nombreVisitante: c.visitante?.nombre ?? 'Por definir',
+        },
+        partido: c.partido,
+        listo: !!c.local && !!c.visitante,
+        pasa: c.ganador?.nombre ?? null,
+      })),
+    }));
+  });
+  protected readonly filas = computed(() => this.grupos().flatMap((g) => g.filas).filter((f) => f.listo));
   protected readonly creados = computed(() => this.filas().filter((f) => !!f.partido).length);
 
   protected readonly form = this.fb.group({
@@ -135,7 +172,9 @@ export class PartidosEliminatoria implements OnInit {
     this.creandoPara.set(this.creandoPara() === idCruce ? null : idCruce);
   }
 
-  protected crearPartido(c: Cruce): void {
+  protected crearPartido(f: Fila): void {
+    const c = f.cruce;
+    const ronda = RONDAS_ELIMINATORIA[f.ronda];
     this.intento.set(true);
     if (this.form.invalid) {
       return;
@@ -146,15 +185,15 @@ export class PartidosEliminatoria implements OnInit {
         {
           fechaHora: v.fechaHora,
           estado: 'PROGRAMADO',
-          fase: RONDA_32AVOS.fase,
-          jornada: RONDA_32AVOS.jornada,
+          fase: ronda.fase,
+          jornada: ronda.jornada,
           idCancha: Number(v.idCancha),
           idTorneo: this.torneo().idTorneo,
         },
         c.idLocal,
         c.idVisitante,
       ),
-      `Partido del cruce ${c.orden} creado.`,
+      `Partido de ${ronda.titulo.toLowerCase()} (${c.nombreLocal} vs ${c.nombreVisitante}) creado.`,
       () => {
         this.form.patchValue({ fechaHora: '' });
         this.intento.set(false);

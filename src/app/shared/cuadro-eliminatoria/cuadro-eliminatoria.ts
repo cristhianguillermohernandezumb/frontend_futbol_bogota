@@ -2,11 +2,11 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 
 import { Cruce, PartidoConEquipos, Penales } from '../../core/models';
-import { RONDA_32AVOS, partidoDeCruce } from '../../core/eliminatorias';
+import { RONDAS_ELIMINATORIA, calcularRondas } from '../../core/eliminatorias';
 import { EscudoEquipo } from '../escudo-equipo/escudo-equipo';
 
 interface Equipo {
-  idEquipo: number;
+  idEquipo: number | null;
   nombre: string;
   goles: number | null;
   /** Penales convertidos, si el partido se definio en tanda. */
@@ -21,6 +21,8 @@ interface Tarjeta {
   conecta: boolean;
   etiqueta: string;
   equipos: [Equipo, Equipo] | null;
+  /** Equipo que paso de ronda (o campeon, en la final). */
+  pasa: string | null;
   fecha: string | null;
   estado: string | null;
 }
@@ -29,8 +31,6 @@ interface Columna {
   titulo: string;
   tarjetas: Tarjeta[];
 }
-
-const RONDAS = ['32avos de final', 'Octavos de final', 'Cuartos de final', 'Semifinales', 'Final'];
 
 /**
  * Cuadro de eliminatoria "en flujo": cada cruce de 32avos con el escudo y el nombre de sus equipos y las rondas
@@ -47,42 +47,45 @@ export class CuadroEliminatoria {
   readonly partidos = input<PartidoConEquipos[]>([]);
   readonly penales = input<Penales[]>([]);
 
-  protected readonly columnas = computed<Columna[]>(() => {
-    const total = RONDA_32AVOS.cruces;
-    const ordenados = [...this.cruces()].sort((a, b) => a.orden - b.orden);
-    const columnas: Columna[] = [];
-    for (let r = 0; r < RONDAS.length; r++) {
-      const cantidad = total / 2 ** r;
-      const alto = 2 ** r;
-      const tarjetas: Tarjeta[] = [];
-      for (let i = 0; i < cantidad; i++) {
-        const cruce = r === 0 ? ordenados.find((c) => c.orden === i + 1) : undefined;
-        const partido = cruce ? partidoDeCruce(this.partidos(), cruce) : undefined;
-        const marcador = !!partido && (partido.estado === 'EN_JUEGO' || partido.estado === 'FINALIZADO');
-        const tanda = partido ? this.penales().find((x) => x.idPartido === partido.idPartido && x.tiros.length > 0) : undefined;
-        const terminado = partido?.estado === 'FINALIZADO';
-        const ganaLocal = !!partido && terminado && (partido.golesLocal > partido.golesVisitante || (partido.golesLocal === partido.golesVisitante && tanda?.ganador === 'LOCAL'));
-        const ganaVisitante = !!partido && terminado && (partido.golesVisitante > partido.golesLocal || (partido.golesLocal === partido.golesVisitante && tanda?.ganador === 'VISITANTE'));
-        tarjetas.push({
-          fila: i * alto + 1,
-          alto,
-          par: cantidad > 1 ? (i % 2 === 0 ? 'arriba' : 'abajo') : null,
-          conecta: r > 0,
-          etiqueta: r === 0 ? `Cruce ${i + 1}` : r === RONDAS.length - 1 ? 'Final' : `${RONDAS[r]} · ${i + 1}`,
-          equipos: cruce
-            ? [
-                { idEquipo: cruce.idLocal, nombre: cruce.nombreLocal, goles: marcador ? partido.golesLocal : null, penales: marcador && tanda ? tanda.golesLocal : null, gana: ganaLocal },
-                { idEquipo: cruce.idVisitante, nombre: cruce.nombreVisitante, goles: marcador ? partido.golesVisitante : null, penales: marcador && tanda ? tanda.golesVisitante : null, gana: ganaVisitante },
-              ]
-            : null,
-          fecha: partido?.fechaHora ?? null,
-          estado: partido?.estado ?? null,
-        });
-      }
-      columnas.push({ titulo: RONDAS[r], tarjetas });
-    }
-    return columnas;
-  });
+  protected readonly rondas = computed(() => calcularRondas(this.cruces(), this.partidos(), this.penales()));
 
-  protected readonly filas = RONDA_32AVOS.cruces;
+  protected readonly campeon = computed(() => this.rondas()[RONDAS_ELIMINATORIA.length - 1][0].ganador);
+
+  protected readonly columnas = computed<Columna[]>(() =>
+    this.rondas().map((cruces, r) => {
+      const cantidad = cruces.length;
+      const alto = 2 ** r;
+      const ronda = RONDAS_ELIMINATORIA[r];
+      return {
+        titulo: ronda.titulo,
+        tarjetas: cruces.map((c, i): Tarjeta => {
+          const marcador = !!c.partido && (c.partido.estado === 'EN_JUEGO' || c.partido.estado === 'FINALIZADO');
+          const gana = (id: number | undefined) => !!c.ganador && c.ganador.idEquipo === id;
+          const lado = (eq: typeof c.local, goles: number | undefined, pen: number | undefined): Equipo => ({
+            idEquipo: eq?.idEquipo ?? null,
+            nombre: eq?.nombre ?? 'Por definir',
+            goles: marcador && eq ? (goles ?? null) : null,
+            penales: marcador && eq && c.tanda ? (pen ?? null) : null,
+            gana: gana(eq?.idEquipo),
+          });
+          return {
+            fila: i * alto + 1,
+            alto,
+            par: cantidad > 1 ? (i % 2 === 0 ? 'arriba' : 'abajo') : null,
+            conecta: r > 0,
+            etiqueta: r === 0 ? `Cruce ${i + 1}` : r === RONDAS_ELIMINATORIA.length - 1 ? 'Final' : `${ronda.titulo} · ${i + 1}`,
+            equipos:
+              c.local || c.visitante
+                ? [lado(c.local, c.partido?.golesLocal, c.tanda?.golesLocal), lado(c.visitante, c.partido?.golesVisitante, c.tanda?.golesVisitante)]
+                : null,
+            pasa: c.ganador?.nombre ?? null,
+            fecha: c.partido?.fechaHora ?? null,
+            estado: c.partido?.estado ?? null,
+          };
+        }),
+      };
+    }),
+  );
+
+  protected readonly filas = RONDAS_ELIMINATORIA[0].cruces;
 }

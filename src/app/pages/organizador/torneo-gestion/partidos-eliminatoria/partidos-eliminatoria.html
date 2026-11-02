@@ -12,23 +12,32 @@
     <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
   </div>
 } @else {
-  <h2>Partidos de {{ titulo }}</h2>
+  <h2>Partidos de la eliminatoria</h2>
 
-  @if (filas().length === 0) {
+  @if (grupos().length === 0) {
     <p class="aviso">
       Aún no hay cruces. Primero define quién juega contra quién en la pestaña "{{ titulo }}" (cuando termine la fase de grupos).
     </p>
   } @else {
     <p class="nota">
-      Los equipos ya vienen de los cruces. Aquí agregas fecha y cancha, y luego árbitros, alineación, inicio y eventos de cada
-      partido. {{ creados() }} de {{ filas().length }} partidos creados.
+      Los equipos de {{ titulo }} vienen de los cruces; en las rondas siguientes se arman solos con los ganadores (si hay empate,
+      con la tanda de penales). Aquí agregas fecha y cancha, y luego árbitros, alineación, inicio y eventos de cada partido.
+      {{ creados() }} partidos creados.
     </p>
 
+    @for (g of grupos(); track g.titulo) {
+    <h3 class="ronda">{{ g.titulo }}</h3>
     <ul class="lista">
-      @for (f of filas(); track f.cruce.idCruce) {
+      @for (f of g.filas; track f.cruce.idCruce) {
+        @if (!f.listo) {
+          <li class="partido pendiente">
+            <p class="fecha">{{ g.titulo }} · {{ f.cruce.orden }}</p>
+            <p class="nota">Esperando a los ganadores de la ronda anterior.</p>
+          </li>
+        } @else {
         <li class="partido">
           <p class="fecha">
-            Cruce {{ f.cruce.orden }}
+            {{ g.titulo }} · {{ f.cruce.orden }}
             @if (f.partido; as p) {
               · {{ p.fechaHora | date: 'EEE d MMM, h:mm a' }} · {{ p.nombreCancha }}
             }
@@ -52,6 +61,10 @@
               <span>{{ f.cruce.nombreVisitante }}</span>
             </span>
           </div>
+
+          @if (f.pasa) {
+            <p class="pasa-nota">Pasa de ronda: <strong>{{ f.pasa }}</strong></p>
+          }
 
           @if (f.partido; as p) {
             @if (penalDe(p.idPartido); as pe) {
@@ -106,7 +119,7 @@
             }
           } @else if (puedeProgramar()) {
             @if (creandoPara() === f.cruce.idCruce) {
-              <form class="formulario" [formGroup]="form" (ngSubmit)="crearPartido(f.cruce)" novalidate>
+              <form class="formulario" [formGroup]="form" (ngSubmit)="crearPartido(f)" novalidate>
                 <div class="rejilla">
                   <div class="grupo">
                     <label [for]="'fecha-' + f.cruce.idCruce">Fecha y hora</label>
@@ -146,8 +159,10 @@
             }
           }
         </li>
+        }
       }
     </ul>
+    }
 
     @if (puedeProgramar() && canchas().length === 0) {
       <p class="aviso">Aún no hay canchas. Créalas desde la pestaña "Partidos" para poder programar.</p>

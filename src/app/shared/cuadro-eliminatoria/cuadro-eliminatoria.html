@@ -1,3 +1,6 @@
+@if (campeon(); as c) {
+  <p class="campeon" role="status">🏆 Campeón: <strong>{{ c.nombre }}</strong></p>
+}
 <div class="cuadro-envoltura" tabindex="0" role="region" aria-label="Cuadro de eliminatorias">
   <div class="cuadro" [style.--filas]="filas">
     @for (col of columnas(); track col.titulo; let c = $index) {
@@ -7,10 +10,17 @@
           [class.conecta]="t.conecta" [style.grid-column]="c + 1" [style.grid-row]="(t.fila + 1) + ' / span ' + t.alto">
           <article class="cruce" [class.vacio]="!t.equipos" [attr.aria-label]="t.etiqueta">
             @if (t.equipos; as eq) {
-              @for (e of eq; track e.idEquipo; let i = $index) {
+              @for (e of eq; track i; let i = $index) {
                 <div class="equipo" [class.gana]="e.gana">
-                  <app-escudo-equipo class="escudo" [idEquipo]="e.idEquipo" [nombre]="e.nombre" />
-                  <span class="nombre">{{ e.nombre }}</span>
+                  @if (e.idEquipo !== null) {
+                    <app-escudo-equipo class="escudo" [idEquipo]="e.idEquipo" [nombre]="e.nombre" />
+                  } @else {
+                    <span class="escudo escudo-vacio" aria-hidden="true"></span>
+                  }
+                  <span class="nombre" [class.pendiente]="e.idEquipo === null">{{ e.nombre }}</span>
+                  @if (e.gana) {
+                    <span class="pasa" title="Pasa a la siguiente ronda">Pasa</span>
+                  }
                   @if (e.goles !== null) {
                     <span class="goles">{{ e.goles }}</span>
                   }
