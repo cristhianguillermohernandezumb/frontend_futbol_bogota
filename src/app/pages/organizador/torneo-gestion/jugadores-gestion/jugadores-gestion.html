@@ -37,6 +37,10 @@
           <strong>{{ j.nombreJugador }}</strong>
           @if (puedeModificar()) {
             <div class="acciones">
+              <button type="button" class="boton boton-borde boton-chico" [attr.aria-expanded]="editando() === j.idJugador"
+                [disabled]="trabajando()" (click)="abrirEditar(j)">
+                {{ editando() === j.idJugador ? 'Cerrar edición' : 'Editar' }}
+              </button>
               @if (retirando() === j.idJugador) {
                 <button type="button" class="boton boton-peligro boton-chico" [disabled]="trabajando()" (click)="retirar(j)">
                   Confirmar retiro
@@ -46,6 +50,124 @@
                 <button type="button" class="boton boton-borde boton-chico" (click)="retirando.set(j.idJugador)">Retirar</button>
               }
             </div>
+          }
+
+          @if (editando() === j.idJugador) {
+            <form class="formulario editar" [formGroup]="formEditar" (ngSubmit)="guardarEdicion(j)" novalidate>
+              <h3>Corregir datos de {{ j.nombreJugador }}</h3>
+              <div class="rejilla">
+                <div class="grupo">
+                  <label [for]="'ed-tipo-' + j.idJugador">Tipo de documento</label>
+                  <select [id]="'ed-tipo-' + j.idJugador" formControlName="tipoDocumento">
+                    @for (t of tipos; track t) {
+                      <option [value]="t">{{ t }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-doc-' + j.idJugador">Número de documento</label>
+                  <input [id]="'ed-doc-' + j.idJugador" type="text" formControlName="documento" maxlength="50" [attr.aria-invalid]="invalidoEditar('documento')" />
+                  @if (invalidoEditar('documento')) {
+                    <p class="error-campo">Escribe el documento.</p>
+                  }
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-pn-' + j.idJugador">Primer nombre</label>
+                  <input [id]="'ed-pn-' + j.idJugador" type="text" formControlName="primerNombre" maxlength="50" [attr.aria-invalid]="invalidoEditar('primerNombre')" />
+                  @if (invalidoEditar('primerNombre')) {
+                    <p class="error-campo">Escribe el primer nombre.</p>
+                  }
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-sn-' + j.idJugador">Segundo nombre <span class="ayuda">(opcional)</span></label>
+                  <input [id]="'ed-sn-' + j.idJugador" type="text" formControlName="segundoNombre" maxlength="50" />
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-pa-' + j.idJugador">Primer apellido</label>
+                  <input [id]="'ed-pa-' + j.idJugador" type="text" formControlName="primerApellido" maxlength="50" [attr.aria-invalid]="invalidoEditar('primerApellido')" />
+                  @if (invalidoEditar('primerApellido')) {
+                    <p class="error-campo">Escribe el primer apellido.</p>
+                  }
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-sa-' + j.idJugador">Segundo apellido <span class="ayuda">(opcional)</span></label>
+                  <input [id]="'ed-sa-' + j.idJugador" type="text" formControlName="segundoApellido" maxlength="50" />
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-fn-' + j.idJugador">Fecha de nacimiento</label>
+                  <input [id]="'ed-fn-' + j.idJugador" type="date" formControlName="fechaNacimiento" [max]="hoy" [attr.aria-invalid]="invalidoEditar('fechaNacimiento')" />
+                  @if (invalidoEditar('fechaNacimiento')) {
+                    <p class="error-campo">Elige una fecha pasada.</p>
+                  }
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-nac-' + j.idJugador">Nacionalidad</label>
+                  <input [id]="'ed-nac-' + j.idJugador" type="text" formControlName="nacionalidad" maxlength="50" [attr.aria-invalid]="invalidoEditar('nacionalidad')" />
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-est-' + j.idJugador">Estatura (cm)</label>
+                  <input [id]="'ed-est-' + j.idJugador" type="number" formControlName="estatura" [attr.aria-invalid]="invalidoEditar('estatura')" />
+                  @if (invalidoEditar('estatura')) {
+                    <p class="error-campo">Entre 100 y 250 cm.</p>
+                  }
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-peso-' + j.idJugador">Peso (kg)</label>
+                  <input [id]="'ed-peso-' + j.idJugador" type="number" formControlName="peso" step="0.1" [attr.aria-invalid]="invalidoEditar('peso')" />
+                  @if (invalidoEditar('peso')) {
+                    <p class="error-campo">Entre 30 y 250 kg.</p>
+                  }
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-pie-' + j.idJugador">Pierna hábil</label>
+                  <select [id]="'ed-pie-' + j.idJugador" formControlName="piernaHabil">
+                    @for (p of piernas; track p.valor) {
+                      <option [value]="p.valor">{{ p.texto }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-pos-' + j.idJugador">Posición</label>
+                  <select [id]="'ed-pos-' + j.idJugador" formControlName="posicion">
+                    @for (p of posiciones; track p.valor) {
+                      <option [value]="p.valor">{{ p.texto }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-estado-' + j.idJugador">Estado</label>
+                  <select [id]="'ed-estado-' + j.idJugador" formControlName="estado">
+                    @for (e of estados; track e.valor) {
+                      <option [value]="e.valor">{{ e.texto }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-cor-' + j.idJugador">Correos <span class="ayuda">(separados por coma)</span></label>
+                  <input [id]="'ed-cor-' + j.idJugador" type="text" formControlName="correos" />
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-tel-' + j.idJugador">Teléfonos <span class="ayuda">(separados por coma)</span></label>
+                  <input [id]="'ed-tel-' + j.idJugador" type="text" formControlName="telefonos" />
+                </div>
+                <div class="grupo">
+                  <label [for]="'ed-cam-' + j.idJugador">Número de camiseta</label>
+                  <input [id]="'ed-cam-' + j.idJugador" type="number" formControlName="numeroCamiseta" min="0" max="99"
+                    [readonly]="!puedeCambiarCamiseta()" [attr.aria-invalid]="invalidoEditar('numeroCamiseta')" />
+                  @if (!puedeCambiarCamiseta()) {
+                    <p class="ayuda">La camiseta solo se cambia mientras el torneo está en inscripción.</p>
+                  } @else if (invalidoEditar('numeroCamiseta')) {
+                    <p class="error-campo">Un número de 0 a 99.</p>
+                  }
+                </div>
+              </div>
+              <div class="botones">
+                <button type="submit" class="boton boton-peto" [disabled]="trabajando()">
+                  {{ trabajando() ? 'Guardando…' : 'Guardar cambios' }}
+                </button>
+                <button type="button" class="boton boton-borde" (click)="editando.set(null)">Cancelar</button>
+              </div>
+            </form>
           }
         </li>
       }

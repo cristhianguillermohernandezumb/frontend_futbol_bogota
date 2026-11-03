@@ -35,6 +35,10 @@
               </button>
             }
             @if (torneo().estado !== 'FINALIZADO') {
+              <button type="button" class="boton boton-borde boton-chico" [attr.aria-expanded]="editando() === e.idEquipo"
+                [disabled]="trabajando()" (click)="abrirEditar(e)">
+                {{ editando() === e.idEquipo ? 'Cerrar edición' : 'Editar' }}
+              </button>
               <label class="boton boton-borde boton-chico subir" [class.deshabilitado]="trabajando()">
                 Cambiar escudo
                 <input type="file" class="oculto" accept="image/png,image/jpeg,image/gif,image/webp"
@@ -52,6 +56,53 @@
               }
             }
           </div>
+
+          @if (editando() === e.idEquipo) {
+            <form class="formulario editar" [formGroup]="formEditar" (ngSubmit)="guardarEdicion(e)" novalidate>
+              <h3>Corregir datos de {{ e.nombreEquipo }}</h3>
+              <div class="rejilla">
+                <div class="grupo">
+                  <label [for]="'e-nombre-' + e.idEquipo">Nombre</label>
+                  <input [id]="'e-nombre-' + e.idEquipo" type="text" formControlName="nombre" maxlength="50"
+                    [attr.aria-invalid]="invalidoEditar('nombre')" />
+                  @if (invalidoEditar('nombre')) {
+                    <p class="error-campo">Escribe el nombre del equipo.</p>
+                  }
+                </div>
+                <div class="grupo">
+                  <label [for]="'e-fecha-' + e.idEquipo">Fecha de fundación</label>
+                  <input [id]="'e-fecha-' + e.idEquipo" type="date" formControlName="fechaFundacion" [max]="hoy"
+                    [attr.aria-invalid]="invalidoEditar('fechaFundacion')" />
+                  @if (invalidoEditar('fechaFundacion')) {
+                    <p class="error-campo">Elige una fecha (no puede ser futura).</p>
+                  }
+                </div>
+                <div class="grupo">
+                  <label [for]="'e-correo-' + e.idEquipo">Correo del equipo</label>
+                  <input [id]="'e-correo-' + e.idEquipo" type="email" formControlName="correo"
+                    [attr.aria-invalid]="invalidoEditar('correo')" />
+                  @if (invalidoEditar('correo')) {
+                    <p class="error-campo">Escribe un correo válido.</p>
+                  }
+                </div>
+                <div class="grupo">
+                  <label [for]="'e-tel-' + e.idEquipo">Teléfono</label>
+                  <input [id]="'e-tel-' + e.idEquipo" type="tel" formControlName="telefonoEquipo" inputmode="numeric"
+                    [attr.aria-invalid]="invalidoEditar('telefonoEquipo')" />
+                  @if (invalidoEditar('telefonoEquipo')) {
+                    <p class="error-campo">Solo números (7 a 15 dígitos).</p>
+                  }
+                </div>
+              </div>
+              <p class="ayuda">El escudo se cambia con el botón "Cambiar escudo".</p>
+              <div class="botones">
+                <button type="submit" class="boton boton-peto" [disabled]="trabajando()">
+                  {{ trabajando() ? 'Guardando…' : 'Guardar cambios' }}
+                </button>
+                <button type="button" class="boton boton-borde" (click)="editando.set(null)">Cancelar</button>
+              </div>
+            </form>
+          }
         </li>
       }
     </ul>
@@ -120,7 +171,7 @@
             </div>
           </div>
           <div class="grupo">
-            <label for="escudo">Escudo <span class="ayuda">(opcional, imagen de hasta 2 MB)</span></label>
+            <label for="escudo">Escudo <span class="ayuda">(opcional, imagen de hasta 200 KB)</span></label>
             <input id="escudo" type="file" accept="image/png,image/jpeg,image/gif,image/webp" (change)="elegirEscudo($event)" />
             @if (errorEscudo(); as texto) {
               <p class="error-campo">{{ texto }}</p>

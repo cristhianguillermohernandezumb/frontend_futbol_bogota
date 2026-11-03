@@ -11,6 +11,13 @@
     </p>
   }
 
+  @if (editable() && sinEmpezar() && !cargando() && plantilla().length > 0) {
+    <button type="button" class="boton boton-borde boton-chico anterior" [disabled]="trabajando()" (click)="usarAnterior()"
+      title="Copia la última alineación que usó este equipo">
+      Alineación pasada
+    </button>
+  }
+
   @if (mia().length === 0) {
     <p class="vacio">Sin jugadores en la alineación todavía.</p>
   } @else {

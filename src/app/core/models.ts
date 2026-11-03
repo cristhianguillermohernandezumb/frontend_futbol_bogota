@@ -416,3 +416,11 @@ export interface Penales {
   ganador: 'LOCAL' | 'VISITANTE' | null;
   idGanador: number | null;
 }
+
+/** Resultado de copiar la ultima alineacion usada por un equipo. */
+export interface CopiaAlineacion {
+  idPartidoOrigen: number;
+  agregados: Alineacion[];
+  /** Jugadores que no se pudieron copiar (no inscritos en este torneo o ya en el partido). */
+  omitidos: number;
+}

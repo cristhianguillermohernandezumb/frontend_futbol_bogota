@@ -27,13 +27,23 @@
             }
           </p>
           <div class="cruce">
-            <span class="local">{{ p.local ?? 'Por definir' }}</span>
+            <span class="lado local">
+              <span>{{ p.local ?? 'Por definir' }}</span>
+              @if (p.idLocal && p.local) {
+                <app-escudo-equipo class="escudo" [idEquipo]="p.idLocal" [nombre]="p.local" />
+              }
+            </span>
             @if (conMarcador(p)) {
               <span class="marcador">{{ p.golesLocal }} - {{ p.golesVisitante }}</span>
             } @else {
               <span class="marcador vs">vs</span>
             }
-            <span class="visitante">{{ p.visitante ?? 'Por definir' }}</span>
+            <span class="lado visitante">
+              @if (p.idVisitante && p.visitante) {
+                <app-escudo-equipo class="escudo" [idEquipo]="p.idVisitante" [nombre]="p.visitante" />
+              }
+              <span>{{ p.visitante ?? 'Por definir' }}</span>
+            </span>
           </div>
           <div class="fila-acciones">
             <span [class]="'estado estado-' + p.estado.toLowerCase()">{{ etiquetaEstado(p.estado) }}</span>

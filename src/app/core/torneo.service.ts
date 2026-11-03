@@ -86,8 +86,12 @@ export class TorneoService {
     return this.http.get<Posicion[]>(`${API_URL}/torneos/${id}/posiciones`);
   }
 
-  goleadores(id: number, limite = 10): Observable<Goleador[]> {
-    const params = new HttpParams().set('limite', limite);
+  /** fase: 'grupos' (solo fase de grupos), 'eliminatoria' (despues de grupos) o sin indicar (todo el torneo). */
+  goleadores(id: number, limite = 10, fase?: 'grupos' | 'eliminatoria'): Observable<Goleador[]> {
+    let params = new HttpParams().set('limite', limite);
+    if (fase) {
+      params = params.set('fase', fase);
+    }
     return this.http.get<Goleador[]>(`${API_URL}/torneos/${id}/goleadores`, { params });
   }
 

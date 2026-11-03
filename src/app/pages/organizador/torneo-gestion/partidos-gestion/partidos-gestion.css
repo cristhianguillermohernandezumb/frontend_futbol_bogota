@@ -45,8 +45,20 @@ h3 {
   font-weight: 600;
 }
 
+.lado {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
 .local {
+  justify-content: flex-end;
   text-align: right;
+}
+
+.escudo {
+  --escudo: 2.2rem;
 }
 
 .marcador {

@@ -157,3 +157,9 @@ h3 {
     justify-content: flex-start;
   }
 }
+
+.anterior {
+  align-self: flex-start;
+  width: auto;
+  margin: 0.25rem 0 0.75rem;
+}

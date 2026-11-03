@@ -192,12 +192,25 @@
   font-weight: 600;
 }
 
+.equipo-local,
+.equipo-visitante {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
 .equipo-local {
+  justify-content: flex-end;
   text-align: right;
 }
 
 .equipo-visitante {
   text-align: left;
+}
+
+.partido-escudo {
+  --escudo: 2.2rem;
 }
 
 .marcador {
@@ -497,4 +510,9 @@
   color: var(--texto-suave);
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+.titulo-seccion {
+  margin: 0 0 0.75rem;
+  font-size: 1.2rem;
 }

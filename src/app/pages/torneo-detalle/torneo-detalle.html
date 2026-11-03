@@ -272,13 +272,23 @@
                     }
                   </p>
                   <div class="partido-cruce">
-                    <span class="equipo equipo-local">{{ p.local ?? 'Por definir' }}</span>
+                    <span class="equipo equipo-local">
+                      <span>{{ p.local ?? 'Por definir' }}</span>
+                      @if (p.idLocal && p.local) {
+                        <app-escudo-equipo class="partido-escudo" [idEquipo]="p.idLocal" [nombre]="p.local" />
+                      }
+                    </span>
                     @if (conMarcador(p)) {
                       <span class="marcador" aria-label="Marcador">{{ p.golesLocal }} - {{ p.golesVisitante }}</span>
                     } @else {
                       <span class="marcador vs">vs</span>
                     }
-                    <span class="equipo equipo-visitante">{{ p.visitante ?? 'Por definir' }}</span>
+                    <span class="equipo equipo-visitante">
+                      @if (p.idVisitante && p.visitante) {
+                        <app-escudo-equipo class="partido-escudo" [idEquipo]="p.idVisitante" [nombre]="p.visitante" />
+                      }
+                      <span>{{ p.visitante ?? 'Por definir' }}</span>
+                    </span>
                   </div>
                   <div class="partido-pie">
                     <span [class]="claseEstado(p.estado)">{{ etiquetaPartido(p.estado) }}</span>
@@ -289,12 +299,21 @@
                         }
                       </span>
                     }
+                    @if (penalDe(p.idPartido)) {
+                      <button type="button" class="enlace" [attr.aria-expanded]="conPenales() === p.idPartido" (click)="alternarPenales(p.idPartido)">
+                        {{ conPenales() === p.idPartido ? 'Ocultar penales' : 'Penales' }}
+                      </button>
+                    }
                     @if (conMarcador(p)) {
                       <button type="button" class="enlace" [attr.aria-expanded]="abierto() === p.idPartido" (click)="alternarEventos(p)">
                         {{ abierto() === p.idPartido ? 'Ocultar eventos' : 'Ver eventos' }}
                       </button>
                     }
                   </div>
+                  @if (conPenales() === p.idPartido) {
+                    <app-tanda-penales [idPartido]="p.idPartido" [local]="{ idEquipo: p.idLocal ?? 0, nombre: p.local ?? 'Local' }"
+                      [visitante]="{ idEquipo: p.idVisitante ?? 0, nombre: p.visitante ?? 'Visitante' }" [editable]="false" />
+                  }
                   @if (abierto() === p.idPartido) {
                     @if (eventosDe()[p.idPartido]; as ev) {
                       @if (ev.cargando) {
@@ -357,42 +376,51 @@
       }
 
       @case ('goleadores') {
-        @if (goleadores().cargando) {
-          <p class="mensaje" role="status">Cargando goleadores…</p>
-        } @else if (goleadores().error; as mensaje) {
-          <div class="aviso aviso-error" role="alert">
-            <p>{{ mensaje }}</p>
-            <button type="button" class="enlace" (click)="cargarGoleadores()">Reintentar</button>
-          </div>
-        } @else if (goleadores().datos.length === 0) {
-          <p class="mensaje">Aún no hay goles registrados.</p>
-        } @else {
-          <div class="tabla-envoltura">
-            <table class="tabla">
-              <caption class="solo-lectores">Tabla de goleadores</caption>
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col" class="izq">Jugador</th>
-                  <th scope="col" class="izq">Equipo</th>
-                  <th scope="col" class="pts">Goles</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (g of goleadores().datos; track g.idJugador) {
-                  <tr>
-                    <td>{{ g.posicion }}</td>
-                    <th scope="row" class="izq">{{ g.nombreJugador }}</th>
-                    <td class="izq">{{ g.nombreEquipo }}</td>
-                    <td class="pts">{{ g.goles }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-          <p class="nota">No se cuentan los autogoles.</p>
-        }
+        <ng-container *ngTemplateOutlet="tablaGoleadores; context: { sec: goleadores(), titulo: 'Goleadores de la fase de grupos' }" />
+      }
+
+      @case ('goleadores-elim') {
+        <ng-container *ngTemplateOutlet="tablaGoleadores; context: { sec: goleadoresElim(), titulo: 'Goleadores después de la fase de grupos' }" />
       }
     }
   </section>
 }
+
+<ng-template #tablaGoleadores let-sec="sec" let-titulo="titulo">
+  <h2 class="titulo-seccion">{{ titulo }}</h2>
+  @if (sec.cargando) {
+    <p class="mensaje" role="status">Cargando goleadores…</p>
+  } @else if (sec.error; as mensaje) {
+    <div class="aviso aviso-error" role="alert">
+      <p>{{ mensaje }}</p>
+      <button type="button" class="enlace" (click)="cargarGoleadores()">Reintentar</button>
+    </div>
+  } @else if (sec.datos.length === 0) {
+    <p class="mensaje">Aún no hay goles registrados.</p>
+  } @else {
+    <div class="tabla-envoltura">
+      <table class="tabla">
+        <caption class="solo-lectores">{{ titulo }}</caption>
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col" class="izq">Jugador</th>
+            <th scope="col" class="izq">Equipo</th>
+            <th scope="col" class="pts">Goles</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (g of sec.datos; track g.idJugador) {
+            <tr>
+              <td>{{ g.posicion }}</td>
+              <th scope="row" class="izq">{{ g.nombreJugador }}</th>
+              <td class="izq">{{ g.nombreEquipo }}</td>
+              <td class="pts">{{ g.goles }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="nota">No se cuentan los autogoles.</p>
+  }
+</ng-template>

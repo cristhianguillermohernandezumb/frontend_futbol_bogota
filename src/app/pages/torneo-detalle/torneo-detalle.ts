@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, NgTemplateOutlet } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -25,9 +25,10 @@ import {
 } from '../../core/models';
 import { TorneoService } from '../../core/torneo.service';
 import { CuadroEliminatoria } from '../../shared/cuadro-eliminatoria/cuadro-eliminatoria';
+import { TandaPenales } from '../../shared/tanda-penales/tanda-penales';
 import { EscudoEquipo } from '../../shared/escudo-equipo/escudo-equipo';
 
-type Pestana = 'posiciones' | 'grupos' | 'cruces' | 'partidos' | 'equipos' | 'goleadores';
+type Pestana = 'posiciones' | 'grupos' | 'cruces' | 'partidos' | 'equipos' | 'goleadores' | 'goleadores-elim';
 
 /** Estado de carga de una seccion: cada una se pide por aparte para que un fallo no tumbe a las demas. */
 interface Seccion<T> {
@@ -62,7 +63,7 @@ function inicial<T>(datos: T): Seccion<T> {
 
 @Component({
   selector: 'app-torneo-detalle',
-  imports: [RouterLink, DatePipe, CurrencyPipe, EscudoEquipo, CuadroEliminatoria],
+  imports: [RouterLink, DatePipe, CurrencyPipe, NgTemplateOutlet, EscudoEquipo, CuadroEliminatoria, TandaPenales],
   templateUrl: './torneo-detalle.html',
   styleUrl: './torneo-detalle.css',
 })
@@ -81,7 +82,15 @@ export class TorneoDetalle implements OnInit {
     if (this.gruposTerminados()) {
       base.push({ id: 'cruces', texto: RONDA_32AVOS.titulo });
     }
-    return [...base, { id: 'partidos', texto: 'Partidos' }, { id: 'equipos', texto: 'Equipos' }, { id: 'goleadores', texto: 'Goleadores' }];
+    const final: { id: Pestana; texto: string }[] = [
+      { id: 'partidos', texto: 'Partidos' },
+      { id: 'equipos', texto: 'Equipos' },
+      { id: 'goleadores', texto: 'Goleadores fase de grupos' },
+    ];
+    if (this.gruposTerminados()) {
+      final.push({ id: 'goleadores-elim', texto: 'Goleadores tras fase de grupos' });
+    }
+    return [...base, ...final];
   });
 
   protected readonly pestana = signal<Pestana>('posiciones');
@@ -93,6 +102,9 @@ export class TorneoDetalle implements OnInit {
   protected readonly partidos = signal<Seccion<PartidoConEquipos[]>>(inicial([]));
   protected readonly equipos = signal<Seccion<EquipoInscrito[]>>(inicial([]));
   protected readonly goleadores = signal<Seccion<Goleador[]>>(inicial([]));
+  protected readonly goleadoresElim = signal<Seccion<Goleador[]>>(inicial([]));
+  /** Partido con la tanda de penales desplegada. */
+  protected readonly conPenales = signal<number | null>(null);
 
   /** Cada grupo con su tabla y los clasificados a la siguiente ronda (ver core/clasificacion.ts). */
   protected readonly tablasDeGrupos = computed(() => calcularTablasDeGrupos(this.grupos().datos, this.posiciones().datos));
@@ -126,7 +138,7 @@ export class TorneoDetalle implements OnInit {
   ngOnInit(): void {
     // Permite volver directamente a una pestana (por ejemplo desde la pagina de un equipo): /torneos/1?pestana=equipos
     const pedida = this.ruta.snapshot.queryParamMap.get('pestana');
-    if (pedida && ['posiciones', 'grupos', 'cruces', 'partidos', 'equipos', 'goleadores'].includes(pedida)) {
+    if (pedida && ['posiciones', 'grupos', 'cruces', 'partidos', 'equipos', 'goleadores', 'goleadores-elim'].includes(pedida)) {
       this.pestana.set(pedida as Pestana);
     }
     this.ruta.paramMap.subscribe((params) => {
@@ -302,11 +314,21 @@ export class TorneoDetalle implements OnInit {
   protected cargarGoleadores(): void {
     const id = this.id;
     this.goleadores.set(inicial([]));
-    this.torneoService.goleadores(id).subscribe({
+    this.goleadoresElim.set(inicial([]));
+    this.torneoService.goleadores(id, 10, 'grupos').subscribe({
       next: (datos) => id === this.id && this.goleadores.set({ cargando: false, error: null, datos }),
       error: (err: unknown) =>
         id === this.id && this.goleadores.set({ cargando: false, error: mensajeDeError(err), datos: [] }),
     });
+    this.torneoService.goleadores(id, 10, 'eliminatoria').subscribe({
+      next: (datos) => id === this.id && this.goleadoresElim.set({ cargando: false, error: null, datos }),
+      error: (err: unknown) =>
+        id === this.id && this.goleadoresElim.set({ cargando: false, error: mensajeDeError(err), datos: [] }),
+    });
+  }
+
+  protected alternarPenales(idPartido: number): void {
+    this.conPenales.set(this.conPenales() === idPartido ? null : idPartido);
   }
 
   protected elegir(p: Pestana): void {

@@ -104,6 +104,28 @@ export class AlineacionEquipo {
     );
   }
 
+  /** Arma la alineacion con la ultima que uso este equipo en un partido anterior. */
+  protected usarAnterior(): void {
+    this.trabajando.set(true);
+    this.mensaje.set(null);
+    this.organizador.copiarAlineacionAnterior(this.partido().idPartido, this.equipo().idEquipo).subscribe({
+      next: (r) => {
+        const n = r.agregados.length;
+        const omitidos = r.omitidos > 0 ? ` ${r.omitidos} no se copió${r.omitidos === 1 ? '' : 'aron'} (no está inscrito en este torneo o ya estaba en el partido).` : '';
+        this.mensaje.set({
+          tipo: n > 0 ? 'ok' : 'error',
+          texto: n > 0 ? `Se copió la alineación anterior: ${n} jugador${n === 1 ? '' : 'es'}.${omitidos}` : `No había jugadores nuevos para copiar.${omitidos}`,
+        });
+        this.trabajando.set(false);
+        this.cambio.emit();
+      },
+      error: (err: unknown) => {
+        this.mensaje.set({ tipo: 'error', texto: mensajeDeError(err) });
+        this.trabajando.set(false);
+      },
+    });
+  }
+
   protected alternarTitular(a: Alineacion): void {
     this.ejecutar(
       this.organizador.actualizarAlineacion(a.idPartido, a.idEquipo, a.idJugador, { titular: a.titular !== 'S' }),

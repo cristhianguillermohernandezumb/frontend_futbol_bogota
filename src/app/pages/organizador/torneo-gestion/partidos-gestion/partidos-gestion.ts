@@ -15,6 +15,7 @@ import {
 } from '../../../../core/models';
 import { OrganizadorService } from '../../../../core/organizador.service';
 import { TorneoService } from '../../../../core/torneo.service';
+import { EscudoEquipo } from '../../../../shared/escudo-equipo/escudo-equipo';
 import { ArbitrosPartido } from '../arbitros-partido/arbitros-partido';
 
 interface Mensaje {
@@ -47,7 +48,7 @@ const ETIQUETA_ESTADO: Record<EstadoPartido, string> = {
 
 @Component({
   selector: 'app-partidos-gestion',
-  imports: [ReactiveFormsModule, DatePipe, RouterLink, ArbitrosPartido],
+  imports: [ReactiveFormsModule, DatePipe, RouterLink, ArbitrosPartido, EscudoEquipo],
   templateUrl: './partidos-gestion.html',
   styleUrl: './partidos-gestion.css',
 })

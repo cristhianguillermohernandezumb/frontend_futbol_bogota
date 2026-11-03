@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 
 import { mensajeDeError } from '../../../../core/api-error';
 import {
@@ -10,7 +10,7 @@ import {
   listarClasificados,
 } from '../../../../core/clasificacion';
 import { RONDA_32AVOS, esFase, faseDeGruposTerminada } from '../../../../core/eliminatorias';
-import { Cruce, GrupoConEquipos, PartidoConEquipos, Posicion, Torneo } from '../../../../core/models';
+import { Cruce, GrupoConEquipos, PartidoConEquipos, Penales, Posicion, Torneo } from '../../../../core/models';
 import { OrganizadorService } from '../../../../core/organizador.service';
 import { TorneoService } from '../../../../core/torneo.service';
 import { CuadroEliminatoria } from '../../../../shared/cuadro-eliminatoria/cuadro-eliminatoria';
@@ -59,6 +59,7 @@ export class CrucesGestion implements OnInit {
   private readonly grupos = signal<GrupoConEquipos[]>([]);
   private readonly posiciones = signal<Posicion[]>([]);
   protected readonly partidos = signal<PartidoConEquipos[]>([]);
+  protected readonly penales = signal<Penales[]>([]);
   protected readonly cruces = signal<Cruce[]>([]);
 
   protected readonly modo = signal<Modo | null>(null);
@@ -107,11 +108,14 @@ export class CrucesGestion implements OnInit {
       posiciones: this.torneoService.posiciones(id),
       partidos: this.torneoService.partidos(id),
       cruces: this.torneoService.cruces(id, RONDA_32AVOS.codigo),
+      // Dato extra (quien paso por penales): si falla, el resto de la pestaña sigue funcionando.
+      penales: this.torneoService.penalesDeTorneo(id).pipe(catchError(() => of([] as Penales[]))),
     }).subscribe({
       next: (r) => {
         this.grupos.set(r.grupos);
         this.posiciones.set(r.posiciones);
         this.partidos.set(r.partidos);
+        this.penales.set(r.penales);
         this.cruces.set(r.cruces);
         this.cargando.set(false);
       },

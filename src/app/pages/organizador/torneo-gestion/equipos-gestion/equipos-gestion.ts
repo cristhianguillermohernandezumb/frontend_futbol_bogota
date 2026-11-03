@@ -11,7 +11,7 @@ import { EscudoEquipo } from '../../../../shared/escudo-equipo/escudo-equipo';
 
 /** El backend exige un escudo; si no se sube imagen se envia un byte vacio de relleno. */
 const ESCUDO_VACIO = 'AA==';
-const MAX_ESCUDO_BYTES = 2 * 1024 * 1024;
+const MAX_ESCUDO_BYTES = 200 * 1024;
 const TIPOS_ESCUDO = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 
 interface Mensaje {
@@ -39,6 +39,9 @@ export class EquiposGestion implements OnInit {
   protected readonly mensaje = signal<Mensaje | null>(null);
   protected readonly trabajando = signal(false);
   protected readonly retirando = signal<number | null>(null);
+  /** Equipo cuyo formulario de correccion esta abierto. */
+  protected readonly editando = signal<number | null>(null);
+  protected readonly intentoEditar = signal(false);
   /** Sube cuando se cambia un escudo, para que el navegador vuelva a pedir la imagen. */
   protected readonly versionEscudo = signal(0);
 
@@ -59,6 +62,13 @@ export class EquiposGestion implements OnInit {
   protected readonly errorEscudo = signal<string | null>(null);
 
   protected readonly form = this.fb.group({
+    nombre: ['', [Validators.required, Validators.maxLength(50)]],
+    fechaFundacion: ['', [Validators.required]],
+    correo: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+    telefonoEquipo: ['', [Validators.required, Validators.pattern(/^\d{7,15}$/)]],
+  });
+
+  protected readonly formEditar = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(50)]],
     fechaFundacion: ['', [Validators.required]],
     correo: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
@@ -150,6 +160,51 @@ export class EquiposGestion implements OnInit {
     );
   }
 
+  protected invalidoEditar(campo: keyof typeof this.formEditar.controls): boolean {
+    return this.intentoEditar() && this.formEditar.controls[campo].invalid;
+  }
+
+  /** Abre (o cierra) el formulario para corregir los datos del equipo, ya cargado con lo que tiene guardado. */
+  protected abrirEditar(e: EquipoInscrito): void {
+    if (this.editando() === e.idEquipo) {
+      this.editando.set(null);
+      return;
+    }
+    const actual = this.todos().find((x) => x.idEquipo === e.idEquipo);
+    this.mensaje.set(null);
+    this.intentoEditar.set(false);
+    this.formEditar.reset({
+      nombre: actual?.nombre ?? e.nombreEquipo,
+      fechaFundacion: actual?.fechaFundacion ?? '',
+      correo: actual?.correo ?? '',
+      telefonoEquipo: actual ? String(actual.telefonoEquipo) : '',
+    });
+    this.editando.set(e.idEquipo);
+  }
+
+  protected guardarEdicion(e: EquipoInscrito): void {
+    this.intentoEditar.set(true);
+    if (this.formEditar.invalid) {
+      return;
+    }
+    const v = this.formEditar.getRawValue();
+    this.ejecutar(
+      this.organizador.actualizarEquipo(e.idEquipo, {
+        nombre: v.nombre.trim(),
+        fechaFundacion: v.fechaFundacion,
+        correo: v.correo.trim(),
+        telefonoEquipo: Number(v.telefonoEquipo),
+        // 'AA==' = "no cambiar el escudo": el backend conserva el que ya tiene.
+        escudo: ESCUDO_VACIO,
+      }),
+      `Datos de ${v.nombre.trim()} actualizados.`,
+      () => {
+        this.editando.set(null);
+        this.intentoEditar.set(false);
+      },
+    );
+  }
+
   protected pagar(e: EquipoInscrito): void {
     this.ejecutar(this.organizador.marcarPagada(e.idTorneo, e.idEquipo), `Pago de ${e.nombreEquipo} registrado.`);
   }
@@ -168,7 +223,7 @@ export class EquiposGestion implements OnInit {
       return;
     }
     if (!TIPOS_ESCUDO.includes(archivo.type) || archivo.size > MAX_ESCUDO_BYTES) {
-      this.mensaje.set({ tipo: 'error', texto: 'Elige una imagen PNG, JPG, GIF o WEBP de máximo 2 MB.' });
+      this.mensaje.set({ tipo: 'error', texto: 'Elige una imagen PNG, JPG, GIF o WEBP de máximo 200 KB.' });
       return;
     }
     this.ejecutar(this.organizador.cambiarEscudo(e.idEquipo, archivo), `Escudo de ${e.nombreEquipo} actualizado.`, () =>
@@ -185,7 +240,7 @@ export class EquiposGestion implements OnInit {
       return;
     }
     if (!TIPOS_ESCUDO.includes(archivo.type) || archivo.size > MAX_ESCUDO_BYTES) {
-      this.errorEscudo.set('Elige una imagen PNG, JPG, GIF o WEBP de máximo 2 MB.');
+      this.errorEscudo.set('Elige una imagen PNG, JPG, GIF o WEBP de máximo 200 KB.');
       (evento.target as HTMLInputElement).value = '';
       return;
     }

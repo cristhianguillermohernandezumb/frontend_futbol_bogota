@@ -29,6 +29,7 @@ import {
   Jugador,
   JugadorInscrito,
   JugadorRequest,
+  CopiaAlineacion,
   Partido,
   PartidoRequest,
   Penales,
@@ -62,6 +63,11 @@ export class OrganizadorService {
 
   crearEquipo(datos: EquipoRequest): Observable<Equipo> {
     return this.http.post<Equipo>(`${API_URL}/equipos`, datos);
+  }
+
+  /** Corrige los datos de un equipo. Con el escudo de relleno ('AA==') el backend conserva el escudo actual. */
+  actualizarEquipo(idEquipo: number, datos: EquipoRequest): Observable<Equipo> {
+    return this.http.put<Equipo>(`${API_URL}/equipos/${idEquipo}`, datos);
   }
 
   inscribir(idTorneo: number, idEquipo: number): Observable<EquipoInscrito> {
@@ -123,6 +129,20 @@ export class OrganizadorService {
 
   crearJugador(datos: JugadorRequest): Observable<Jugador> {
     return this.http.post<Jugador>(`${API_URL}/jugadores`, datos);
+  }
+
+  actualizarJugador(idJugador: number, datos: JugadorRequest): Observable<Jugador> {
+    return this.http.put<Jugador>(`${API_URL}/jugadores/${idJugador}`, datos);
+  }
+
+  /** Cambia el numero de camiseta (solo mientras el torneo esta en inscripcion). */
+  cambiarCamiseta(idTorneo: number, idEquipo: number, idJugador: number, numero: number): Observable<JugadorInscrito> {
+    const params = new HttpParams().set('numero', numero);
+    return this.http.patch<JugadorInscrito>(
+      `${API_URL}/torneos/${idTorneo}/equipos/${idEquipo}/jugadores/${idJugador}/camiseta`,
+      null,
+      { params },
+    );
   }
 
   inscribirJugador(
@@ -209,6 +229,11 @@ export class OrganizadorService {
       null,
       { params },
     );
+  }
+
+  /** Copia la ultima alineacion que uso el equipo (su partido anterior mas reciente). */
+  copiarAlineacionAnterior(idPartido: number, idEquipo: number): Observable<CopiaAlineacion> {
+    return this.http.post<CopiaAlineacion>(`${API_URL}/partidos/${idPartido}/equipos/${idEquipo}/alineacion/anterior`, null);
   }
 
   /** Cambia titular/suplente (antes de empezar) o los minutos jugados (con el partido en juego o terminado). */
