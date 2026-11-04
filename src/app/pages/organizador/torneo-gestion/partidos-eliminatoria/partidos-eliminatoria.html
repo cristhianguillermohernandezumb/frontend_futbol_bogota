@@ -16,11 +16,11 @@
 
   @if (grupos().length === 0) {
     <p class="aviso">
-      Aún no hay cruces. Primero define quién juega contra quién en la pestaña "{{ titulo }}" (cuando termine la fase de grupos).
+      Aún no hay cruces. Primero define quién juega contra quién en la pestaña "{{ titulo() }}" (cuando termine la fase de grupos).
     </p>
   } @else {
     <p class="nota">
-      Los equipos de {{ titulo }} vienen de los cruces; en las rondas siguientes se arman solos con los ganadores (si hay empate,
+      Los equipos de {{ titulo() }} vienen de los cruces; en las rondas siguientes se arman solos con los ganadores (si hay empate,
       con la tanda de penales). Aquí agregas fecha y cancha, y luego árbitros, alineación, inicio y eventos de cada partido.
       {{ creados() }} partidos creados.
     </p>

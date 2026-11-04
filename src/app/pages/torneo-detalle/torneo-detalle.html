@@ -234,7 +234,7 @@
       }
 
       @case ('cruces') {
-        <h2 class="jornada">{{ '32avos de final' }}</h2>
+        <h2 class="jornada">{{ formato().primera.titulo }}</h2>
         @if (cruces().cargando || partidos().cargando) {
           <p class="mensaje" role="status">Cargando cruces…</p>
         } @else if (cruces().error; as mensaje) {
@@ -243,9 +243,9 @@
             <button type="button" class="enlace" (click)="cargarCruces()">Reintentar</button>
           </div>
         } @else if (cruces().datos.length === 0) {
-          <p class="mensaje">La fase de grupos terminó. El organizador aún no define los cruces de 32avos.</p>
+          <p class="mensaje">La fase de grupos terminó. El organizador aún no define los cruces de {{ formato().primera.titulo }}.</p>
         } @else {
-          <app-cuadro-eliminatoria [cruces]="cruces().datos" [partidos]="partidos().datos" [penales]="penales()" />
+          <app-cuadro-eliminatoria [cruces]="cruces().datos" [partidos]="partidos().datos" [penales]="penales()" [formato]="formato()" />
         }
       }
 

@@ -38,17 +38,9 @@
       <div class="bloque">
         <h2>Sorteo al azar</h2>
         <p class="nota">Reparte todos los equipos inscritos al azar; ningún equipo se repite en dos grupos.</p>
-        <div class="tamano">
-          <label for="tamano-grupo">Equipos por grupo</label>
-          <div class="tamano-controles">
-            <input id="tamano-grupo" type="number" min="2" step="1" inputmode="numeric" [ngModel]="tamano()"
-              (ngModelChange)="cambiarTamano($event)" [disabled]="trabajando()" />
-            @for (t of tamanosRapidos; track t) {
-              <button type="button" class="boton boton-borde boton-chico" [class.activo]="tamano() === t"
-                [disabled]="trabajando()" (click)="cambiarTamano(t)">{{ t }}</button>
-            }
-          </div>
-        </div>
+        <p class="nota">
+          Este torneo es de {{ formato().equipos }} equipos: {{ formato().grupos }} grupos de {{ formato().tamanoGrupo }} equipos.
+        </p>
         @if (plan().error; as e) {
           <p class="aviso aviso-error" role="alert">{{ e }}</p>
         } @else {

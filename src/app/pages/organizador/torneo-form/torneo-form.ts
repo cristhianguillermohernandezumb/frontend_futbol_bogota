@@ -1,10 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { mensajeDeError } from '../../../core/api-error';
 import { AuthService } from '../../../core/auth.service';
 import { Modalidad } from '../../../core/models';
+import { FORMATOS_TORNEO, formatoDe } from '../../../core/eliminatorias';
 import { OrganizadorService } from '../../../core/organizador.service';
 
 /** La fecha de fin no puede ser anterior a la de inicio (el backend tambien lo valida). */
@@ -42,14 +43,23 @@ export class TorneoForm {
       modalidad: ['FUTBOL_7' as Modalidad, [Validators.required]],
       categoria: ['', [Validators.required, Validators.maxLength(20)]],
       costoInscripcion: [0, [Validators.required, Validators.min(0)]],
-      maxEquipos: [8, [Validators.required, Validators.min(2)]],
+      maxEquipos: [24, [Validators.required]],
     },
     { validators: fechasValidas },
   );
 
+  /** Formatos disponibles: 24 equipos (6 grupos, octavos) o 48 equipos (12 grupos, 32avos). */
+  protected readonly formatos = FORMATOS_TORNEO;
+  private readonly maxElegido = signal(24);
+  protected readonly formatoElegido = computed(() => formatoDe(this.maxElegido()));
+
   protected readonly intento = signal(false);
   protected readonly enviando = signal(false);
   protected readonly error = signal<string | null>(null);
+
+  protected elegirFormato(valor: string): void {
+    this.maxElegido.set(Number(valor));
+  }
 
   protected invalido(campo: keyof typeof this.form.controls): boolean {
     return this.intento() && this.form.controls[campo].invalid;

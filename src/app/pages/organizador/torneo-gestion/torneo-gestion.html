@@ -28,7 +28,7 @@
     </div>
   } @else {
     <div class="pestanas" role="tablist" aria-label="Gestión del torneo">
-      @for (p of pestanas; track p.id) {
+      @for (p of pestanas(); track p.id) {
         <button type="button" role="tab" class="pestana" [class.activa]="pestana() === p.id"
           [attr.aria-selected]="pestana() === p.id" (click)="elegir(p.id)">
           {{ p.texto }}

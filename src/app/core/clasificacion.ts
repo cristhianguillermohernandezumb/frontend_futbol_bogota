@@ -1,6 +1,6 @@
 import { GrupoConEquipos, Posicion } from './models';
 
-/** Cuantos terceros pasan de ronda (12 grupos: 24 primeros y segundos + 8 terceros = 32 equipos). */
+/** Terceros que pasan de ronda por defecto (12 grupos: 24 primeros y segundos + 8 terceros = 32 equipos). */
 export const MEJORES_TERCEROS = 8;
 
 export interface FilaGrupo {
@@ -71,9 +71,9 @@ function ordenarPorPuntos(a: ConPuntos, b: ConPuntos): number {
 /**
  * Clasificados a la siguiente ronda: primero y segundo de cada grupo mas los mejores terceros
  * (puntos, diferencia de goles, goles a favor y nombre). Solo se definen cuando todos los grupos terminaron.
- * Esta es la regla de grupos de 4; las de grupos de 6 y de 12 se agregaran aqui cuando se definan.
+ * `cupoTerceros` depende del formato del torneo: 8 con 12 grupos (48 equipos) y 4 con 6 grupos (24 equipos).
  */
-export function calcularClasificados(tablas: TablaGrupo[]): Clasificados | null {
+export function calcularClasificados(tablas: TablaGrupo[], cupoTerceros: number = MEJORES_TERCEROS): Clasificados | null {
   if (tablas.length === 0 || !tablas.every((g) => g.terminado)) {
     return null;
   }
@@ -84,9 +84,9 @@ export function calcularClasificados(tablas: TablaGrupo[]): Clasificados | null 
     .filter((g) => g.filas.length >= 3)
     .map((g) => ({ letra: g.letra, ...g.filas[2] }))
     .sort(ordenarPorPuntos)
-    .map((f, i) => ({ ...f, puesto: i + 1, pasa: i < MEJORES_TERCEROS }));
+    .map((f, i) => ({ ...f, puesto: i + 1, pasa: i < cupoTerceros }));
   const total = directos.length * 2 + terceros.filter((f) => f.pasa).length;
-  return { directos, terceros, total, cupoTerceros: Math.min(MEJORES_TERCEROS, terceros.length) };
+  return { directos, terceros, total, cupoTerceros: Math.min(cupoTerceros, terceros.length) };
 }
 
 /** Los equipos que pasan de ronda, en una sola lista (1.os, 2.os y mejores terceros). */

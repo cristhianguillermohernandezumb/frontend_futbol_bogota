@@ -12,7 +12,7 @@
     <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
   </div>
 } @else if (!gruposTerminados()) {
-  <h2>{{ titulo }}</h2>
+  <h2>{{ titulo() }}</h2>
   <p class="aviso">
     Los cruces se arman cuando terminan todos los partidos de la fase de grupos.
     @if (pendientesGrupos() > 0) {
@@ -21,21 +21,21 @@
       Todavía no hay partidos de fase de grupos.
     }
   </p>
-} @else if (equipos().length !== cantidad * 2) {
-  <h2>{{ titulo }}</h2>
+} @else if (equipos().length !== cantidad() * 2) {
+  <h2>{{ titulo() }}</h2>
   <p class="aviso">
-    Por ahora los {{ titulo }} necesitan {{ cantidad * 2 }} clasificados (12 grupos de 4: los dos primeros de cada grupo y los
-    8 mejores terceros) y esta fase de grupos clasifica {{ equipos().length }}. Las reglas para otros formatos se agregarán después.
+    Este torneo ({{ formato().descripcion }}) necesita {{ cantidad() * 2 }} clasificados para los {{ titulo() }}, y los grupos
+    actuales clasifican {{ equipos().length }}. Revisa que los grupos sean de 4 equipos y que haya {{ formato().grupos }} grupos.
   </p>
 } @else {
-  <h2>{{ titulo }}</h2>
+  <h2>{{ titulo() }}</h2>
 
   @if (!editando()) {
     @if (cruces().length > 0) {
       <p class="nota">
         Cruces definidos. Crea los partidos de cada uno en la pestaña "Partidos tras fase de grupos".
       </p>
-      <app-cuadro-eliminatoria [cruces]="cruces()" [partidos]="partidos()" [penales]="penales()" />
+      <app-cuadro-eliminatoria [cruces]="cruces()" [partidos]="partidos()" [penales]="penales()" [formato]="formato()" />
 
       @if (puedeModificar()) {
         @if (hayPartidosDeRonda()) {
@@ -74,7 +74,7 @@
       </div>
       <p class="nota">
         @if (modo() === 'random') {
-          Sorteo al azar de los {{ cantidad * 2 }} clasificados, evitando que se enfrenten equipos del mismo grupo. Puedes
+          Sorteo al azar de los {{ cantidad() * 2 }} clasificados, evitando que se enfrenten equipos del mismo grupo. Puedes
           cambiar cualquier casilla antes de guardar.
         } @else {
           Elige el local y el visitante de cada cruce. Cada equipo se usa una sola vez.
@@ -107,7 +107,7 @@
         }
       </ol>
 
-      <p class="progreso">{{ completos() }} de {{ cantidad }} cruces completos</p>
+      <p class="progreso">{{ completos() }} de {{ cantidad() }} cruces completos</p>
       <div class="botones">
         <button type="button" class="boton boton-peto" [disabled]="!listoParaGuardar() || trabajando()" (click)="guardar()">
           {{ trabajando() ? 'Guardando…' : 'Guardar cruces' }}

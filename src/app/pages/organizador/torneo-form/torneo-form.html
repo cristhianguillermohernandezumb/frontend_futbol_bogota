@@ -59,11 +59,16 @@
 
     <div class="rejilla">
       <div class="grupo">
-        <label for="maxEquipos">Máximo de equipos</label>
-        <input id="maxEquipos" type="number" formControlName="maxEquipos" min="2" [attr.aria-invalid]="invalido('maxEquipos')" />
-        @if (invalido('maxEquipos')) {
-          <p class="error-campo">Mínimo 2 equipos.</p>
-        }
+        <label for="maxEquipos">Tamaño del torneo</label>
+        <select id="maxEquipos" formControlName="maxEquipos" (change)="elegirFormato($any($event.target).value)">
+          @for (f of formatos; track f.equipos) {
+            <option [value]="f.equipos">{{ f.equipos }} equipos ({{ f.grupos }} grupos de 4)</option>
+          }
+        </select>
+        <p class="ayuda">
+          Pasan {{ formatoElegido().clasificados }} equipos: los 2 primeros de cada grupo y los
+          {{ formatoElegido().terceros }} mejores terceros. La eliminatoria empieza en {{ formatoElegido().primera.titulo.toLowerCase() }}.
+        </p>
       </div>
 
       <div class="grupo">

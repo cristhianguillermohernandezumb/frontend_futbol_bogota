@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 
 import { Cruce, PartidoConEquipos, Penales } from '../../core/models';
-import { RONDAS_ELIMINATORIA, calcularRondas } from '../../core/eliminatorias';
+import { FORMATO_48, FormatoTorneo, calcularRondas } from '../../core/eliminatorias';
 import { EscudoEquipo } from '../escudo-equipo/escudo-equipo';
 
 interface Equipo {
@@ -33,7 +33,7 @@ interface Columna {
 }
 
 /**
- * Cuadro de eliminatoria "en flujo": cada cruce de 32avos con el escudo y el nombre de sus equipos y las rondas
+ * Cuadro de eliminatoria "en flujo": cada cruce de la primera ronda con el escudo y el nombre de sus equipos y las rondas
  * siguientes por definir. Los marcadores aparecen cuando el partido de ese cruce ya empezo.
  */
 @Component({
@@ -46,16 +46,19 @@ export class CuadroEliminatoria {
   readonly cruces = input.required<Cruce[]>();
   readonly partidos = input<PartidoConEquipos[]>([]);
   readonly penales = input<Penales[]>([]);
+  /** Formato del torneo (24 o 48 equipos): define con que ronda empieza el cuadro. */
+  readonly formato = input<FormatoTorneo>(FORMATO_48);
 
-  protected readonly rondas = computed(() => calcularRondas(this.cruces(), this.partidos(), this.penales()));
+  protected readonly rondas = computed(() => calcularRondas(this.cruces(), this.partidos(), this.penales(), this.formato()));
 
-  protected readonly campeon = computed(() => this.rondas()[RONDAS_ELIMINATORIA.length - 1][0].ganador);
+  protected readonly campeon = computed(() => this.rondas()[this.rondas().length - 1][0].ganador);
 
   protected readonly columnas = computed<Columna[]>(() =>
-    this.rondas().map((cruces, r) => {
+    this.rondas().map((cruces, r, todas) => {
+      const cantidadRondas = todas.length;
       const cantidad = cruces.length;
       const alto = 2 ** r;
-      const ronda = RONDAS_ELIMINATORIA[r];
+      const ronda = this.formato().rondas[r];
       return {
         titulo: ronda.titulo,
         tarjetas: cruces.map((c, i): Tarjeta => {
@@ -73,7 +76,7 @@ export class CuadroEliminatoria {
             alto,
             par: cantidad > 1 ? (i % 2 === 0 ? 'arriba' : 'abajo') : null,
             conecta: r > 0,
-            etiqueta: r === 0 ? `Cruce ${i + 1}` : r === RONDAS_ELIMINATORIA.length - 1 ? 'Final' : `${ronda.titulo} · ${i + 1}`,
+            etiqueta: r === 0 ? `Cruce ${i + 1}` : r === cantidadRondas - 1 ? 'Final' : `${ronda.titulo} · ${i + 1}`,
             equipos:
               c.local || c.visitante
                 ? [lado(c.local, c.partido?.golesLocal, c.tanda?.golesLocal), lado(c.visitante, c.partido?.golesVisitante, c.tanda?.golesVisitante)]
@@ -87,5 +90,5 @@ export class CuadroEliminatoria {
     }),
   );
 
-  protected readonly filas = RONDAS_ELIMINATORIA[0].cruces;
+  protected readonly filas = computed(() => this.formato().primera.cruces);
 }

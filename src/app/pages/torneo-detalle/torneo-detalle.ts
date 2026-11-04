@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 
 import { mensajeDeError } from '../../core/api-error';
 import { calcularClasificados, calcularTablasDeGrupos } from '../../core/clasificacion';
-import { RONDA_32AVOS, faseDeGruposTerminada } from '../../core/eliminatorias';
+import { faseDeGruposTerminada, formatoDe } from '../../core/eliminatorias';
 import { AuthService } from '../../core/auth.service';
 import { EspectadorService } from '../../core/espectador.service';
 import {
@@ -73,14 +73,14 @@ export class TorneoDetalle implements OnInit {
   private readonly espectador = inject(EspectadorService);
   protected readonly auth = inject(AuthService);
 
-  /** La pestana de 32avos solo aparece cuando terminan todos los partidos de la fase de grupos. */
+  /** La pestana de la primera ronda solo aparece cuando terminan todos los partidos de la fase de grupos. */
   protected readonly pestanas = computed<{ id: Pestana; texto: string }[]>(() => {
     const base: { id: Pestana; texto: string }[] = [
       { id: 'posiciones', texto: 'Posiciones' },
       { id: 'grupos', texto: 'Grupos' },
     ];
     if (this.gruposTerminados()) {
-      base.push({ id: 'cruces', texto: RONDA_32AVOS.titulo });
+      base.push({ id: 'cruces', texto: this.formato().primera.titulo });
     }
     const final: { id: Pestana; texto: string }[] = [
       { id: 'partidos', texto: 'Partidos' },
@@ -108,7 +108,9 @@ export class TorneoDetalle implements OnInit {
 
   /** Cada grupo con su tabla y los clasificados a la siguiente ronda (ver core/clasificacion.ts). */
   protected readonly tablasDeGrupos = computed(() => calcularTablasDeGrupos(this.grupos().datos, this.posiciones().datos));
-  protected readonly clasificados = computed(() => calcularClasificados(this.tablasDeGrupos()));
+  /** 24 equipos: eliminatoria desde octavos; 48 equipos: desde 32avos. */
+  protected readonly formato = computed(() => formatoDe(this.torneo().datos?.maxEquipos));
+  protected readonly clasificados = computed(() => calcularClasificados(this.tablasDeGrupos(), this.formato().terceros));
 
   protected readonly gruposTerminados = computed(() => faseDeGruposTerminada(this.partidos().datos));
 
@@ -156,7 +158,6 @@ export class TorneoDetalle implements OnInit {
     this.cargarSeguimiento();
     this.cargarPosiciones();
     this.cargarGrupos();
-    this.cargarCruces();
     this.cargarPenales();
     this.cargarPartidos();
     this.cargarEquipos();
@@ -167,7 +168,13 @@ export class TorneoDetalle implements OnInit {
     const id = this.id;
     this.torneo.set(inicial(null));
     this.torneoService.obtener(id).subscribe({
-      next: (datos) => id === this.id && this.torneo.set({ cargando: false, error: null, datos }),
+      next: (datos) => {
+        if (id === this.id) {
+          this.torneo.set({ cargando: false, error: null, datos });
+          // Los cruces dependen del formato del torneo (24 o 48 equipos), por eso se piden despues de conocerlo.
+          this.cargarCruces();
+        }
+      },
       error: (err: unknown) =>
         id === this.id && this.torneo.set({ cargando: false, error: mensajeDeError(err), datos: null }),
     });
@@ -284,7 +291,7 @@ export class TorneoDetalle implements OnInit {
   protected cargarCruces(): void {
     const id = this.id;
     this.cruces.set(inicial([]));
-    this.torneoService.cruces(id, RONDA_32AVOS.codigo).subscribe({
+    this.torneoService.cruces(id, this.formato().primera.codigo).subscribe({
       next: (datos) => id === this.id && this.cruces.set({ cargando: false, error: null, datos }),
       error: (err: unknown) =>
         id === this.id && this.cruces.set({ cargando: false, error: mensajeDeError(err), datos: [] }),

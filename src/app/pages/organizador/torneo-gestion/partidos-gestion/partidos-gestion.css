@@ -106,3 +106,182 @@ h3 {
   padding-top: 0.75rem;
   border-top: 1.5px solid var(--linea);
 }
+
+.pendientes {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 8px;
+  background: var(--papel);
+}
+
+.pend-cabecera {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+  text-align: center;
+}
+
+.pend-cabecera h2 {
+  margin: 0;
+}
+
+.pend-resumen {
+  margin: 0;
+  padding: 0.2rem 0.9rem;
+  border-radius: 999px;
+  background: var(--tiza);
+  font-weight: 600;
+}
+
+.nota {
+  margin: 0;
+  max-width: 46rem;
+  color: var(--texto-suave);
+  font-size: 0.95rem;
+}
+
+.pend-herramientas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.pend-jornada {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0.4rem 0 0;
+  padding-bottom: 0.3rem;
+  border-bottom: 2px solid var(--cancha);
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.pend-jornada span {
+  color: var(--texto-suave);
+  font-family: var(--fuente-texto);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.pend-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 25rem), 1fr));
+  gap: 0.8rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pendiente {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem 1rem;
+  border: 1.5px solid var(--linea);
+  border-radius: 8px;
+  background: var(--papel);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pendiente.listo {
+  border-color: var(--cancha);
+  box-shadow: inset 4px 0 0 var(--cancha);
+}
+
+.pend-marco {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pend-grupo {
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: var(--tinta);
+  color: var(--tiza);
+  font-family: var(--fuente-titulo);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.pend-etiqueta {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pend-ok {
+  margin-left: auto;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--cancha);
+  color: var(--tiza);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.cruce-pendiente {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.6rem;
+  align-items: center;
+  font-weight: 700;
+}
+
+.nombre-equipo {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
+}
+
+.intercambio {
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  border: 1.5px solid var(--tinta);
+  border-radius: 50%;
+  background: var(--papel);
+  color: var(--tinta);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.intercambio:hover {
+  background: var(--tinta);
+  color: var(--tiza);
+}
+
+.datos-pendiente {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.datos-pendiente .boton {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+  padding-block: 0.55rem;
+}
+
+.datos-pendiente .grupo,
+.datos-pendiente input,
+.datos-pendiente select {
+  min-width: 0;
+  width: 100%;
+}

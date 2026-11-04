@@ -12,6 +12,79 @@
     <button type="button" class="enlace" (click)="cargar()">Reintentar</button>
   </div>
 } @else {
+  @if (puedeProgramar() && pendientes().length > 0) {
+    <section class="pendientes" aria-labelledby="titulo-pendientes">
+      <header class="pend-cabecera">
+        <h2 id="titulo-pendientes">Fase de grupos: partidos por programar</h2>
+        <p class="pend-resumen">
+          <strong>{{ pendientes().length }}</strong> {{ pendientes().length === 1 ? 'cruce' : 'cruces' }} por programar ·
+          <strong>{{ listos().length }}</strong> {{ listos().length === 1 ? 'listo' : 'listos' }}
+        </p>
+        <p class="nota">
+          Los cruces, la jornada y quién es local ya están definidos. Solo falta la fecha y la cancha de cada partido.
+        </p>
+      </header>
+
+      @if (canchas().length === 0) {
+        <p class="aviso">Aún no hay canchas. Crea una (más abajo) para poder programar los partidos.</p>
+      } @else {
+        <div class="pend-herramientas">
+          <button type="button" class="boton boton-peto" [disabled]="listos().length === 0 || trabajando()" (click)="programarListos()">
+            {{ trabajando() ? 'Programando…' : 'Programar los ' + listos().length + ' listos' }}
+          </button>
+        </div>
+
+        @for (j of pendientesPorJornada(); track j.jornada) {
+          <h3 class="pend-jornada">Jornada {{ j.jornada }} <span>{{ j.items.length }} partidos</span></h3>
+          <ul class="pend-lista">
+            @for (f of j.items; track f.clave) {
+              <li class="pendiente" [class.listo]="completo(f)">
+                <div class="pend-marco">
+                  <span class="pend-grupo" title="Grupo {{ f.letra }}">{{ f.letra }}</span>
+                  <span class="pend-etiqueta">Grupo {{ f.letra }}</span>
+                  @if (completo(f)) {
+                    <span class="pend-ok">Listo</span>
+                  }
+                </div>
+                <div class="cruce-pendiente">
+                  <span class="lado local">
+                    <span class="nombre-equipo">{{ local(f).nombre }}</span>
+                    <app-escudo-equipo class="escudo" [idEquipo]="local(f).id" [nombre]="local(f).nombre" />
+                  </span>
+                  <button type="button" class="intercambio" (click)="intercambiar(f)"
+                    [attr.aria-label]="'Cambiar local y visitante: ' + local(f).nombre + ' vs ' + visitante(f).nombre"
+                    title="Cambiar local y visitante">⇄</button>
+                  <span class="lado visitante">
+                    <app-escudo-equipo class="escudo" [idEquipo]="visitante(f).id" [nombre]="visitante(f).nombre" />
+                    <span class="nombre-equipo">{{ visitante(f).nombre }}</span>
+                  </span>
+                </div>
+                <div class="datos-pendiente">
+                  <div class="grupo">
+                    <input type="datetime-local" [value]="borrador(f).fecha" [min]="minFecha()" [max]="maxFecha()"
+                      [attr.aria-label]="'Fecha y hora de ' + local(f).nombre + ' vs ' + visitante(f).nombre"
+                      (input)="cambiar(f, { fecha: $any($event.target).value })" />
+                  </div>
+                  <div class="grupo">
+                    <select [value]="borrador(f).idCancha" [attr.aria-label]="'Cancha de ' + local(f).nombre + ' vs ' + visitante(f).nombre"
+                      (change)="cambiar(f, { idCancha: +$any($event.target).value })">
+                      <option value="0">Cancha…</option>
+                      @for (c of canchas(); track c.idCancha) {
+                        <option [value]="c.idCancha" [selected]="c.idCancha === borrador(f).idCancha">{{ c.nombre }}</option>
+                      }
+                    </select>
+                  </div>
+                  <button type="button" class="boton boton-tinta boton-chico" [disabled]="!completo(f) || trabajando()"
+                    (click)="programarPendiente(f)">Programar</button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      }
+    </section>
+  }
+
   <h2>Partidos</h2>
 
   @if (ordenados().length === 0) {

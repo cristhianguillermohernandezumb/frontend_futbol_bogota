@@ -2,7 +2,7 @@
   <p class="campeon" role="status">🏆 Campeón: <strong>{{ c.nombre }}</strong></p>
 }
 <div class="cuadro-envoltura" tabindex="0" role="region" aria-label="Cuadro de eliminatorias">
-  <div class="cuadro" [style.--filas]="filas">
+  <div class="cuadro" [style.--filas]="filas()">
     @for (col of columnas(); track col.titulo; let c = $index) {
       <h3 class="titulo-ronda" [style.grid-column]="c + 1" [style.grid-row]="1">{{ col.titulo }}</h3>
       @for (t of col.tarjetas; track t.fila) {

@@ -5,6 +5,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { mensajeDeError } from '../../../core/api-error';
 import { AuthService } from '../../../core/auth.service';
 import { EstadoTorneo, Modalidad, Torneo } from '../../../core/models';
+import { formatoDe } from '../../../core/eliminatorias';
 import { OrganizadorService } from '../../../core/organizador.service';
 import { TorneoService } from '../../../core/torneo.service';
 import { CrucesGestion } from './cruces-gestion/cruces-gestion';
@@ -52,16 +53,16 @@ export class TorneoGestion implements OnInit {
   private readonly organizador = inject(OrganizadorService);
   protected readonly auth = inject(AuthService);
 
-  protected readonly pestanas: { id: Pestana; texto: string }[] = [
+  protected readonly pestanas = computed<{ id: Pestana; texto: string }[]>(() => [
     { id: 'resumen', texto: 'Resumen' },
     { id: 'equipos', texto: 'Equipos' },
     { id: 'jugadores', texto: 'Jugadores' },
     { id: 'entrenadores', texto: 'Entrenadores' },
     { id: 'grupos', texto: 'Grupos' },
     { id: 'partidos', texto: 'Partidos' },
-    { id: 'cruces', texto: '32avos de final' },
+    { id: 'cruces', texto: formatoDe(this.torneo()?.maxEquipos).primera.titulo },
     { id: 'eliminatorias', texto: 'Partidos tras fase de grupos' },
-  ];
+  ]);
 
   protected readonly pestana = signal<Pestana>('resumen');
   protected readonly torneo = signal<Torneo | null>(null);

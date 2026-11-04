@@ -9,7 +9,7 @@ import {
   calcularTablasDeGrupos,
   listarClasificados,
 } from '../../../../core/clasificacion';
-import { RONDA_32AVOS, esFase, faseDeGruposTerminada } from '../../../../core/eliminatorias';
+import { esFase, faseDeGruposTerminada, formatoDe } from '../../../../core/eliminatorias';
 import { Cruce, GrupoConEquipos, PartidoConEquipos, Penales, Posicion, Torneo } from '../../../../core/models';
 import { OrganizadorService } from '../../../../core/organizador.service';
 import { TorneoService } from '../../../../core/torneo.service';
@@ -48,8 +48,10 @@ export class CrucesGestion implements OnInit {
   private readonly organizador = inject(OrganizadorService);
   private readonly torneoService = inject(TorneoService);
 
-  protected readonly titulo = RONDA_32AVOS.titulo;
-  protected readonly cantidad = RONDA_32AVOS.cruces;
+  /** 24 equipos: la eliminatoria empieza en octavos; 48 equipos: en 32avos. */
+  protected readonly formato = computed(() => formatoDe(this.torneo().maxEquipos));
+  protected readonly titulo = computed(() => this.formato().primera.titulo);
+  protected readonly cantidad = computed(() => this.formato().primera.cruces);
 
   protected readonly cargando = signal(true);
   protected readonly errorCarga = signal<string | null>(null);
@@ -73,14 +75,14 @@ export class CrucesGestion implements OnInit {
     () => this.partidos().filter((p) => esFase(p, 'Grupos') && p.estado !== 'FINALIZADO').length,
   );
   protected readonly clasificados = computed(() =>
-    calcularClasificados(calcularTablasDeGrupos(this.grupos(), this.posiciones())),
+    calcularClasificados(calcularTablasDeGrupos(this.grupos(), this.posiciones()), this.formato().terceros),
   );
   protected readonly equipos = computed<EquipoClasificado[]>(() => {
     const c = this.clasificados();
     return c ? listarClasificados(c) : [];
   });
   protected readonly porId = computed(() => new Map(this.equipos().map((e) => [e.idEquipo, e])));
-  protected readonly hayPartidosDeRonda = computed(() => this.partidos().some((p) => esFase(p, RONDA_32AVOS.fase)));
+  protected readonly hayPartidosDeRonda = computed(() => this.partidos().some((p) => esFase(p, this.formato().primera.fase)));
 
   protected readonly usados = computed(() => {
     const s = new Set<number>();
@@ -93,7 +95,7 @@ export class CrucesGestion implements OnInit {
   protected readonly completos = computed(
     () => this.borrador().filter((p) => p.local !== null && p.visitante !== null).length,
   );
-  protected readonly listoParaGuardar = computed(() => this.completos() === this.cantidad);
+  protected readonly listoParaGuardar = computed(() => this.completos() === this.cantidad());
 
   ngOnInit(): void {
     this.cargar();
@@ -107,7 +109,7 @@ export class CrucesGestion implements OnInit {
       grupos: this.torneoService.grupos(id),
       posiciones: this.torneoService.posiciones(id),
       partidos: this.torneoService.partidos(id),
-      cruces: this.torneoService.cruces(id, RONDA_32AVOS.codigo),
+      cruces: this.torneoService.cruces(id, this.formato().primera.codigo),
       // Dato extra (quien paso por penales): si falla, el resto de la pestaña sigue funcionando.
       penales: this.torneoService.penalesDeTorneo(id).pipe(catchError(() => of([] as Penales[]))),
     }).subscribe({
@@ -132,14 +134,14 @@ export class CrucesGestion implements OnInit {
     this.mensaje.set(null);
     this.modo.set(m);
     this.editando.set(true);
-    this.borrador.set(m === 'random' ? this.sortear() : Array.from({ length: this.cantidad }, () => ({ local: null, visitante: null })));
+    this.borrador.set(m === 'random' ? this.sortear() : Array.from({ length: this.cantidad() }, () => ({ local: null, visitante: null })));
   }
 
   protected volverASortear(): void {
     this.borrador.set(this.sortear());
   }
 
-  /** Reparte los 32 clasificados al azar en 16 cruces, evitando (si se puede) que se enfrenten dos del mismo grupo. */
+  /** Reparte los clasificados al azar en cruces, evitando (si se puede) que se enfrenten dos del mismo grupo. */
   private sortear(): Par[] {
     const equipos = this.equipos();
     let mejor: Par[] = [];
@@ -200,11 +202,11 @@ export class CrucesGestion implements OnInit {
     this.trabajando.set(true);
     this.mensaje.set(null);
     const lista = this.borrador().map((p) => ({ idLocal: p.local as number, idVisitante: p.visitante as number }));
-    this.organizador.guardarCruces(this.torneo().idTorneo, RONDA_32AVOS.codigo, lista).subscribe({
+    this.organizador.guardarCruces(this.torneo().idTorneo, this.formato().primera.codigo, lista).subscribe({
       next: () => {
         this.trabajando.set(false);
         this.cancelar();
-        this.mensaje.set({ tipo: 'ok', texto: `Cruces de ${this.titulo} guardados.` });
+        this.mensaje.set({ tipo: 'ok', texto: `Cruces de ${this.titulo()} guardados.` });
         this.cargar();
       },
       error: (err: unknown) => {
@@ -218,7 +220,7 @@ export class CrucesGestion implements OnInit {
     this.trabajando.set(true);
     this.mensaje.set(null);
     this.confirmandoBorrar.set(false);
-    this.organizador.borrarCruces(this.torneo().idTorneo, RONDA_32AVOS.codigo).subscribe({
+    this.organizador.borrarCruces(this.torneo().idTorneo, this.formato().primera.codigo).subscribe({
       next: () => {
         this.trabajando.set(false);
         this.mensaje.set({ tipo: 'ok', texto: 'Cruces borrados.' });

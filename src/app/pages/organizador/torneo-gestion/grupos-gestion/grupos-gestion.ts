@@ -4,6 +4,7 @@ import { Observable, concatMap, from, mergeMap, toArray } from 'rxjs';
 
 import { mensajeDeError } from '../../../../core/api-error';
 import { EquipoDeGrupo, EquipoInscrito, Grupo, GrupoConEquipos, Torneo } from '../../../../core/models';
+import { formatoDe } from '../../../../core/eliminatorias';
 import { OrganizadorService } from '../../../../core/organizador.service';
 import { TorneoService } from '../../../../core/torneo.service';
 
@@ -60,8 +61,9 @@ export class GruposGestion implements OnInit {
   protected readonly progreso = signal<string | null>(null);
 
   protected readonly modo = signal<Modo | null>(null);
-  protected readonly tamano = signal(4);
-  protected readonly tamanosRapidos = [4, 6, 12];
+  /** El formato del torneo (24 o 48 equipos) ya define los grupos: siempre de 4 equipos. */
+  protected readonly formato = computed(() => formatoDe(this.torneo().maxEquipos));
+  protected readonly tamano = computed(() => this.formato().tamanoGrupo);
   protected readonly confirmandoSorteo = signal(false);
   protected readonly confirmandoBorrarTodo = signal(false);
   protected readonly confirmandoEliminar = signal<number | null>(null);
@@ -145,11 +147,6 @@ export class GruposGestion implements OnInit {
     this.modo.set(this.modo() === m ? null : m);
     this.confirmandoSorteo.set(false);
     this.mensaje.set(null);
-  }
-
-  protected cambiarTamano(valor: string | number): void {
-    this.tamano.set(Number(valor));
-    this.confirmandoSorteo.set(false);
   }
 
   // ---- Random ----

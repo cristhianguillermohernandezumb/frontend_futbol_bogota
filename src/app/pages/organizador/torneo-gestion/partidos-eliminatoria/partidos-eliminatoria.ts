@@ -5,8 +5,7 @@ import { RouterLink } from '@angular/router';
 import { Observable, forkJoin } from 'rxjs';
 
 import { mensajeDeError } from '../../../../core/api-error';
-import { RONDAS_ELIMINATORIA, calcularRondas } from '../../../../core/eliminatorias';
-import { RONDA_32AVOS } from '../../../../core/eliminatorias';
+import { calcularRondas, formatoDe } from '../../../../core/eliminatorias';
 import { Cancha, Cruce, EstadoPartido, PartidoConEquipos, Penales, Torneo } from '../../../../core/models';
 import { OrganizadorService } from '../../../../core/organizador.service';
 import { TorneoService } from '../../../../core/torneo.service';
@@ -57,7 +56,7 @@ interface GrupoRonda {
 }
 
 /**
- * Partidos de la eliminatoria: los equipos de 32avos vienen de los cruces y los de las rondas siguientes salen solos de
+ * Partidos de la eliminatoria: los equipos de la primera ronda vienen de los cruces y los de las rondas siguientes salen solos de
  * los ganadores (por goles o por penales); aqui solo se agrega fecha, cancha, arbitros, alineacion y eventos.
  */
 @Component({
@@ -73,7 +72,8 @@ export class PartidosEliminatoria implements OnInit {
   private readonly organizador = inject(OrganizadorService);
   private readonly torneoService = inject(TorneoService);
 
-  protected readonly titulo = RONDA_32AVOS.titulo;
+  protected readonly formato = computed(() => formatoDe(this.torneo().maxEquipos));
+  protected readonly titulo = computed(() => this.formato().primera.titulo);
   protected readonly tituloGeneral = 'la eliminatoria';
 
   protected readonly cruces = signal<Cruce[]>([]);
@@ -100,8 +100,8 @@ export class PartidosEliminatoria implements OnInit {
     if (this.cruces().length === 0) {
       return [];
     }
-    return calcularRondas(this.cruces(), this.partidos(), this.penales()).map((cruces, r) => ({
-      titulo: RONDAS_ELIMINATORIA[r].titulo,
+    return calcularRondas(this.cruces(), this.partidos(), this.penales(), this.formato()).map((cruces, r) => ({
+      titulo: this.formato().rondas[r].titulo,
       filas: cruces.map((c): Fila => ({
         ronda: r,
         cruce: {
@@ -135,7 +135,7 @@ export class PartidosEliminatoria implements OnInit {
     this.cargando.set(true);
     this.errorCarga.set(null);
     forkJoin({
-      cruces: this.torneoService.cruces(id, RONDA_32AVOS.codigo),
+      cruces: this.torneoService.cruces(id, this.formato().primera.codigo),
       partidos: this.torneoService.partidos(id),
       canchas: this.organizador.canchas(),
       penales: this.torneoService.penalesDeTorneo(id),
@@ -174,7 +174,7 @@ export class PartidosEliminatoria implements OnInit {
 
   protected crearPartido(f: Fila): void {
     const c = f.cruce;
-    const ronda = RONDAS_ELIMINATORIA[f.ronda];
+    const ronda = this.formato().rondas[f.ronda];
     this.intento.set(true);
     if (this.form.invalid) {
       return;

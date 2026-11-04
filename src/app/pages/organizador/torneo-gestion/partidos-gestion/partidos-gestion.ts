@@ -2,17 +2,20 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, catchError, concatMap, from, map, of } from 'rxjs';
 
 import { mensajeDeError } from '../../../../core/api-error';
 import {
   Cancha,
   EquipoInscrito,
   EstadoPartido,
+  GrupoConEquipos,
   PartidoConEquipos,
   TipoSuperficie,
   Torneo,
 } from '../../../../core/models';
+import { clavePareja, todosContraTodos } from '../../../../core/calendario';
+import { esFase } from '../../../../core/eliminatorias';
 import { OrganizadorService } from '../../../../core/organizador.service';
 import { TorneoService } from '../../../../core/torneo.service';
 import { EscudoEquipo } from '../../../../shared/escudo-equipo/escudo-equipo';
@@ -38,6 +41,24 @@ const TRANSICIONES: Record<EstadoPartido, Transicion[]> = {
   EN_JUEGO: [{ valor: 'FINALIZADO', texto: 'Finalizar' }],
   FINALIZADO: [],
 };
+
+/** Partido de la fase de grupos por programar: ya se sabe quien juega y en que jornada; falta fecha y cancha. */
+interface Pendiente {
+  clave: string;
+  letra: string;
+  jornada: number;
+  a: { id: number; nombre: string };
+  b: { id: number; nombre: string };
+}
+
+interface Borrador {
+  fecha: string;
+  idCancha: number;
+  /** true si el organizador cambio quien es local. */
+  invertido: boolean;
+}
+
+const BORRADOR_VACIO: Borrador = { fecha: '', idCancha: 0, invertido: false };
 
 const ETIQUETA_ESTADO: Record<EstadoPartido, string> = {
   PROGRAMADO: 'Programado',
@@ -69,6 +90,47 @@ export class PartidosGestion implements OnInit {
   protected readonly eliminando = signal<number | null>(null);
   /** Partido cuyo panel de arbitros esta abierto. */
   protected readonly conArbitros = signal<number | null>(null);
+
+  protected readonly grupos = signal<GrupoConEquipos[]>([]);
+  protected readonly borradores = signal<Record<string, Borrador>>({});
+
+  /**
+   * Partidos de la fase de grupos que faltan por programar: todos contra todos dentro de cada grupo. La fase
+   * ("Grupos") y la jornada salen del calendario; el organizador solo pone fecha, cancha y, si quiere, cambia el local.
+   */
+  protected readonly pendientes = computed<Pendiente[]>(() => {
+    const hechos = new Set(
+      this.partidos()
+        .filter((p) => esFase(p, 'Grupos') && p.idLocal && p.idVisitante)
+        .map((p) => clavePareja(p.idLocal as number, p.idVisitante as number)),
+    );
+    const lista: Pendiente[] = [];
+    for (const g of this.grupos()) {
+      const nombres = new Map(g.equipos.map((e) => [e.idEquipo, e.nombreEquipo]));
+      for (const m of todosContraTodos(g.equipos.map((e) => e.idEquipo))) {
+        const clave = clavePareja(m.local, m.visitante);
+        if (!hechos.has(clave)) {
+          lista.push({
+            clave,
+            letra: g.letra,
+            jornada: m.jornada,
+            a: { id: m.local, nombre: nombres.get(m.local) ?? '' },
+            b: { id: m.visitante, nombre: nombres.get(m.visitante) ?? '' },
+          });
+        }
+      }
+    }
+    return lista.sort((x, y) => x.jornada - y.jornada || x.letra.localeCompare(y.letra));
+  });
+  /** Los pendientes agrupados por jornada, para mostrarlos con un titulo por jornada. */
+  protected readonly pendientesPorJornada = computed(() => {
+    const mapa = new Map<number, Pendiente[]>();
+    for (const f of this.pendientes()) {
+      mapa.set(f.jornada, [...(mapa.get(f.jornada) ?? []), f]);
+    }
+    return [...mapa.entries()].map(([jornada, items]) => ({ jornada, items }));
+  });
+  protected readonly listos = computed(() => this.pendientes().filter((f) => this.completo(f)));
 
   protected readonly puedeProgramar = computed(() => this.torneo().estado !== 'FINALIZADO');
   protected readonly ordenados = computed(() =>
@@ -113,9 +175,9 @@ export class PartidosGestion implements OnInit {
     const id = this.torneo().idTorneo;
     this.cargando.set(true);
     this.errorCarga.set(null);
-    let pendientes = 3;
+    let faltan = 4;
     const listo = () => {
-      if (--pendientes === 0) {
+      if (--faltan === 0) {
         this.cargando.set(false);
       }
     };
@@ -126,6 +188,13 @@ export class PartidosGestion implements OnInit {
     this.torneoService.partidos(id).subscribe({
       next: (l) => {
         this.partidos.set(l);
+        listo();
+      },
+      error: falla,
+    });
+    this.torneoService.grupos(id).subscribe({
+      next: (l) => {
+        this.grupos.set(l);
         listo();
       },
       error: falla,
@@ -144,6 +213,97 @@ export class PartidosGestion implements OnInit {
       },
       error: falla,
     });
+  }
+
+  // ---- fase de grupos: partidos por programar ----
+
+  protected borrador(f: Pendiente): Borrador {
+    return this.borradores()[f.clave] ?? BORRADOR_VACIO;
+  }
+
+  protected completo(f: Pendiente): boolean {
+    const b = this.borrador(f);
+    return !!b.fecha && b.idCancha > 0;
+  }
+
+  protected local(f: Pendiente): { id: number; nombre: string } {
+    return this.borrador(f).invertido ? f.b : f.a;
+  }
+
+  protected visitante(f: Pendiente): { id: number; nombre: string } {
+    return this.borrador(f).invertido ? f.a : f.b;
+  }
+
+  protected cambiar(f: Pendiente, cambio: Partial<Borrador>): void {
+    this.borradores.update((m) => ({ ...m, [f.clave]: { ...this.borrador(f), ...cambio } }));
+  }
+
+  protected intercambiar(f: Pendiente): void {
+    this.cambiar(f, { invertido: !this.borrador(f).invertido });
+  }
+
+  private crearPendiente(f: Pendiente): Observable<unknown> {
+    const b = this.borrador(f);
+    return this.organizador.programarPartido(
+      {
+        fechaHora: b.fecha,
+        estado: 'PROGRAMADO',
+        fase: 'Grupos',
+        jornada: f.jornada,
+        idCancha: b.idCancha,
+        idTorneo: this.torneo().idTorneo,
+      },
+      this.local(f).id,
+      this.visitante(f).id,
+    );
+  }
+
+  protected programarPendiente(f: Pendiente): void {
+    if (!this.completo(f) || this.trabajando()) {
+      return;
+    }
+    this.ejecutar(
+      this.crearPendiente(f),
+      `Partido programado: ${this.local(f).nombre} vs ${this.visitante(f).nombre}.`,
+    );
+  }
+
+  /** Programa uno tras otro todos los partidos que ya tienen fecha y cancha; los que fallan quedan en la lista. */
+  protected programarListos(): void {
+    const lista = this.listos();
+    if (lista.length === 0 || this.trabajando()) {
+      return;
+    }
+    this.trabajando.set(true);
+    this.mensaje.set(null);
+    let hechos = 0;
+    const errores: string[] = [];
+    from(lista)
+      .pipe(
+        concatMap((f) =>
+          this.crearPendiente(f).pipe(
+            map(() => void hechos++),
+            catchError((err: unknown) => {
+              errores.push(`${this.local(f).nombre} vs ${this.visitante(f).nombre}: ${mensajeDeError(err)}`);
+              return of(null);
+            }),
+          ),
+        ),
+      )
+      .subscribe({
+        complete: () => {
+          this.trabajando.set(false);
+          this.mensaje.set(
+            errores.length === 0
+              ? { tipo: 'ok', texto: `${hechos} partidos programados.` }
+              : {
+                  tipo: 'error',
+                  texto: `${hechos} programados, ${errores.length} con error. ${errores.slice(0, 3).join(' · ')}`,
+                },
+          );
+          this.cargar();
+        },
+      });
   }
 
   protected invalido(campo: keyof typeof this.form.controls): boolean {
