@@ -181,6 +181,10 @@ export class OrganizadorService {
     return this.http.post<Entrenador>(`${API_URL}/entrenadores`, datos);
   }
 
+  actualizarEntrenador(idEntrenador: number, datos: EntrenadorRequest): Observable<Entrenador> {
+    return this.http.put<Entrenador>(`${API_URL}/entrenadores/${idEntrenador}`, datos);
+  }
+
   eliminarEntrenador(idEntrenador: number): Observable<void> {
     return this.http.delete<void>(`${API_URL}/entrenadores/${idEntrenador}`);
   }

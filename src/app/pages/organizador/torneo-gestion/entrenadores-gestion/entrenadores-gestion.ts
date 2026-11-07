@@ -36,6 +36,7 @@ export class EntrenadoresGestion implements OnInit {
   protected readonly quitando = signal<number | null>(null);
   protected readonly abierto = signal(false);
   protected readonly intento = signal(false);
+  protected readonly editando = signal<Entrenador | null>(null);
 
   protected readonly puedeModificar = computed(() => this.torneo().estado !== 'FINALIZADO');
   protected readonly tipos: TipoDocumento[] = ['CC', 'CE', 'TI', 'PAS'];
@@ -112,7 +113,36 @@ export class EntrenadoresGestion implements OnInit {
 
   protected abrir(): void {
     this.intento.set(false);
+    this.editando.set(null);
+    this.form.reset({ tipoDocumento: 'CC', nacionalidad: 'Colombiana' });
     this.abierto.set(true);
+  }
+
+  protected editar(e: Entrenador): void {
+    this.quitando.set(null);
+    this.mensaje.set(null);
+    this.intento.set(false);
+    this.editando.set(e);
+    this.form.reset({
+      tipoDocumento: e.tipoDocumento,
+      documento: e.documento,
+      primerNombre: e.primerNombre,
+      segundoNombre: e.segundoNombre ?? '',
+      primerApellido: e.primerApellido,
+      segundoApellido: e.segundoApellido ?? '',
+      fechaNacimiento: e.fechaNacimiento,
+      aniosExperiencia: e.aniosExperiencia,
+      nacionalidad: e.nacionalidad,
+      correo: e.correos[0] ?? '',
+      telefono: e.telefonos[0] ?? '',
+    });
+    this.abierto.set(true);
+  }
+
+  protected cancelar(): void {
+    this.abierto.set(false);
+    this.editando.set(null);
+    this.intento.set(false);
   }
 
   protected nombreEquipo(): string {
@@ -143,11 +173,25 @@ export class EntrenadoresGestion implements OnInit {
       correos: v.correo.trim() ? [v.correo.trim()] : [],
       telefonos: v.telefono.trim() ? [v.telefono.trim()] : [],
     };
-    this.ejecutar(this.organizador.crearEntrenador(datos), `Entrenador inscrito en ${this.nombreEquipo()}.`, () => {
+    const alTerminar = () => {
       this.form.reset({ tipoDocumento: 'CC', nacionalidad: 'Colombiana' });
       this.intento.set(false);
       this.abierto.set(false);
-    });
+      this.editando.set(null);
+    };
+    const actual = this.editando();
+    if (actual) {
+      // conserva los contactos adicionales que el formulario no muestra
+      datos.correos = [...datos.correos, ...actual.correos.slice(1)];
+      datos.telefonos = [...datos.telefonos, ...actual.telefonos.slice(1)];
+      this.ejecutar(
+        this.organizador.actualizarEntrenador(actual.idEntrenador, datos),
+        `Datos de ${this.nombre(actual)} actualizados.`,
+        alTerminar,
+      );
+      return;
+    }
+    this.ejecutar(this.organizador.crearEntrenador(datos), `Entrenador inscrito en ${this.nombreEquipo()}.`, alTerminar);
   }
 
   protected quitar(e: Entrenador): void {

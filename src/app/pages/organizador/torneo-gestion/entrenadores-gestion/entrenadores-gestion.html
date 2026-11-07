@@ -52,6 +52,7 @@
                 </button>
                 <button type="button" class="boton boton-borde boton-chico" (click)="quitando.set(null)">No</button>
               } @else {
+                <button type="button" class="boton boton-borde boton-chico" (click)="editar(e)">Editar</button>
                 <button type="button" class="boton boton-borde boton-chico" (click)="quitando.set(e.idEntrenador)">Quitar</button>
               }
             </div>
@@ -65,7 +66,7 @@
     <p class="aviso">El torneo finalizó: ya no se puede modificar el cuerpo técnico.</p>
   } @else {
     <div class="bloque">
-      <h2>Inscribir entrenador en {{ nombreEquipo() }}</h2>
+      <h2>{{ editando() ? 'Editar entrenador' : 'Inscribir entrenador en ' + nombreEquipo() }}</h2>
 
       @if (!abierto()) {
         <button type="button" class="boton boton-tinta" (click)="abrir()">Inscribir entrenador</button>
@@ -149,9 +150,9 @@
           </div>
           <div class="botones">
             <button type="submit" class="boton boton-peto" [disabled]="trabajando()">
-              {{ trabajando() ? 'Guardando…' : 'Inscribir' }}
+              {{ trabajando() ? 'Guardando…' : editando() ? 'Guardar cambios' : 'Inscribir' }}
             </button>
-            <button type="button" class="boton boton-borde" (click)="abierto.set(false)">Cancelar</button>
+            <button type="button" class="boton boton-borde" (click)="cancelar()">Cancelar</button>
           </div>
         </form>
       }
