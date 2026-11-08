@@ -62,7 +62,7 @@ export class Registro {
       })
       .subscribe({
         next: () => {
-          void this.router.navigate(['/login'], { queryParams: { registrado: 1 } });
+          void this.router.navigate(['/login'], { queryParams: { registrado: v.rol === 'ORGANIZADOR' ? 2 : 1 } });
         },
         error: (err: unknown) => {
           this.error.set(mensajeDeError(err));
