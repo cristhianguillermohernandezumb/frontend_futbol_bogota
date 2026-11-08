@@ -133,13 +133,7 @@
               <input id="nacionalidadE" type="text" formControlName="nacionalidad" maxlength="50"
                 [attr.aria-invalid]="invalido('nacionalidad')" />
             </div>
-            <div class="grupo">
-              <label for="correoE">Correo <span class="ayuda">(opcional)</span></label>
-              <input id="correoE" type="email" formControlName="correo" [attr.aria-invalid]="invalido('correo')" />
-              @if (invalido('correo')) {
-                <p class="error-campo">Escribe un correo válido.</p>
-              }
-            </div>
+            <app-correos-multiples [(correos)]="correos" [intento]="intento()" idBase="correoE" />
             <div class="grupo">
               <label for="telefonoE">Teléfono <span class="ayuda">(opcional)</span></label>
               <input id="telefonoE" type="tel" formControlName="telefono" inputmode="numeric" [attr.aria-invalid]="invalido('telefono')" />

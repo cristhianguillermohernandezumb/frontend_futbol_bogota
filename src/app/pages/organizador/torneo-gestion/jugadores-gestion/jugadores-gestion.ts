@@ -15,6 +15,7 @@ import {
   Torneo,
 } from '../../../../core/models';
 import { OrganizadorService } from '../../../../core/organizador.service';
+import { CorreosMultiples, correoValido } from '../../../../shared/correos-multiples/correos-multiples';
 import { TorneoService } from '../../../../core/torneo.service';
 
 interface Mensaje {
@@ -24,7 +25,7 @@ interface Mensaje {
 
 @Component({
   selector: 'app-jugadores-gestion',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CorreosMultiples],
   templateUrl: './jugadores-gestion.html',
   styleUrl: './jugadores-gestion.css',
 })
@@ -96,7 +97,6 @@ export class JugadoresGestion implements OnInit {
     piernaHabil: ['DERECHA' as PiernaHabil, [Validators.required]],
     nacionalidad: ['Colombiana', [Validators.required, Validators.maxLength(50)]],
     posicion: ['DELANTERO' as PosicionJugador, [Validators.required]],
-    correo: ['', [Validators.email, Validators.maxLength(100)]],
     telefono: ['', [Validators.pattern(/^\d{7,20}$/)]],
     numeroCamiseta: [null as number | null, [Validators.required, Validators.min(0), Validators.max(99)]],
   });
@@ -222,9 +222,11 @@ export class JugadoresGestion implements OnInit {
     );
   }
 
+  protected readonly correosNuevo = signal<string[]>(['']);
+
   protected crearEInscribir(): void {
     this.intento.set(true);
-    if (this.formNuevo.invalid) {
+    if (this.formNuevo.invalid || !this.correosNuevo().every(correoValido)) {
       return;
     }
     const v = this.formNuevo.getRawValue();
@@ -242,7 +244,7 @@ export class JugadoresGestion implements OnInit {
       nacionalidad: v.nacionalidad.trim(),
       estado: 'ACTIVO',
       posicion: v.posicion,
-      correos: v.correo.trim() ? [v.correo.trim()] : [],
+      correos: this.correosNuevo().map((c) => c.trim()).filter(Boolean),
       telefonos: v.telefono.trim() ? [v.telefono.trim()] : [],
     };
     // Si el jugador ya se creo en un intento anterior (y solo fallo la inscripcion), no se vuelve a crear.
@@ -260,6 +262,7 @@ export class JugadoresGestion implements OnInit {
       'Jugador creado e inscrito.',
       () => {
         this.creado = null;
+        this.correosNuevo.set(['']);
         this.formNuevo.reset({
           tipoDocumento: 'CC',
           piernaHabil: 'DERECHA',
@@ -392,5 +395,9 @@ export class JugadoresGestion implements OnInit {
         this.cargar();
       },
     });
+  }
+
+  protected etiquetaPierna(pierna: string): string {
+    return pierna ? pierna.charAt(0) + pierna.slice(1).toLowerCase() : '';
   }
 }

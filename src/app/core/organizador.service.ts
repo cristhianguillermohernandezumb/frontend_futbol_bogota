@@ -113,6 +113,21 @@ export class OrganizadorService {
     return this.http.patch<Partido>(`${API_URL}/partidos/${id}/estado`, null, { params });
   }
 
+  /** Aplazado -> Programado: guarda la nueva fecha (y cancha) y luego cambia el estado. */
+  reprogramarPartido(p: Partido, fechaHora: string, idCancha: number): Observable<Partido> {
+    const datos: PartidoRequest = {
+      fechaHora,
+      estado: p.estado,
+      fase: p.fase,
+      jornada: p.jornada,
+      idCancha,
+      idTorneo: p.idTorneo,
+    };
+    return this.http
+      .put<Partido>(`${API_URL}/partidos/${p.idPartido}`, datos)
+      .pipe(switchMap(() => this.cambiarEstadoPartido(p.idPartido, 'PROGRAMADO')));
+  }
+
   eliminarPartido(id: number): Observable<void> {
     return this.http.delete<void>(`${API_URL}/partidos/${id}`);
   }

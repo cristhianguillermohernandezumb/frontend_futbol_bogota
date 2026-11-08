@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { mensajeDeError } from '../../../../core/api-error';
 import { Arbitro, ArbitroAsignado, EstadoPartido, RolArbitro, TipoDocumento } from '../../../../core/models';
 import { OrganizadorService } from '../../../../core/organizador.service';
+import { CorreosMultiples, correoValido } from '../../../../shared/correos-multiples/correos-multiples';
 
 interface Mensaje {
   tipo: 'ok' | 'error';
@@ -21,7 +22,7 @@ const ROLES: { valor: RolArbitro; texto: string }[] = [
 
 @Component({
   selector: 'app-arbitros-partido',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CorreosMultiples],
   templateUrl: './arbitros-partido.html',
   styleUrl: './arbitros-partido.css',
 })
@@ -75,7 +76,6 @@ export class ArbitrosPartido implements OnInit {
     fechaNacimiento: ['', [Validators.required]],
     numeroLicencia: [null as number | null, [Validators.required, Validators.min(1)]],
     nacionalidad: ['Colombiana', [Validators.required, Validators.maxLength(50)]],
-    correo: ['', [Validators.email, Validators.maxLength(100)]],
     telefono: ['', [Validators.pattern(/^\d{7,20}$/)]],
   });
 
@@ -149,9 +149,11 @@ export class ArbitrosPartido implements OnInit {
     this.ejecutar(this.organizador.quitarArbitro(a.idPartido, a.idArbitro), `${a.nombreArbitro} fue quitado del partido.`);
   }
 
+  protected readonly correosNuevo = signal<string[]>(['']);
+
   protected crearArbitro(): void {
     this.intento.set(true);
-    if (this.formNuevo.invalid) {
+    if (this.formNuevo.invalid || !this.correosNuevo().every(correoValido)) {
       return;
     }
     const v = this.formNuevo.getRawValue();
@@ -169,7 +171,7 @@ export class ArbitrosPartido implements OnInit {
         numeroLicencia: Number(v.numeroLicencia),
         nacionalidad: v.nacionalidad.trim(),
         estado: 'ACTIVO',
-        correos: v.correo.trim() ? [v.correo.trim()] : [],
+        correos: this.correosNuevo().map((c) => c.trim()).filter(Boolean),
         telefonos: v.telefono.trim() ? [v.telefono.trim()] : [],
       })
       .subscribe({
@@ -177,6 +179,7 @@ export class ArbitrosPartido implements OnInit {
           this.trabajando.set(false);
           this.mensaje.set({ tipo: 'ok', texto: 'Árbitro creado. Elige su rol y asígnalo al partido.' });
           this.formNuevo.reset({ tipoDocumento: 'CC', nacionalidad: 'Colombiana' });
+          this.correosNuevo.set(['']);
           this.intento.set(false);
           this.mostrarNuevo.set(false);
           // Se deja elegido el arbitro recien creado para asignarlo con un clic.
@@ -209,5 +212,9 @@ export class ArbitrosPartido implements OnInit {
         this.trabajando.set(false);
       },
     });
+  }
+
+  protected licenciaDe(idArbitro: number): number | null {
+    return this.catalogo().find((a) => a.idArbitro === idArbitro)?.numeroLicencia ?? null;
   }
 }

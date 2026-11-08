@@ -77,6 +77,10 @@
           }
         </div>
       }
+      @if (reprogramando()) {
+        <app-reprogramar-partido [partido]="p" [min]="minFecha()" [max]="maxFecha()" (hecho)="reprogramado()"
+          (cancelar)="reprogramando.set(false)" />
+      }
     </div>
   }
 

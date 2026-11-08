@@ -42,7 +42,10 @@
         @for (j of plantilla(); track j.idJugador) {
           <li class="jugador">
             <span class="camiseta" aria-label="Camiseta">{{ j.numeroCamiseta }}</span>
-            <span class="nombre">{{ j.nombreJugador }}</span>
+            <span>
+              <span class="nombre">{{ j.nombreJugador }}</span><br />
+              <span class="ayuda">Pierna hábil: {{ etiquetaPierna(j.piernaHabil) }}</span>
+            </span>
           </li>
         }
       </ul>

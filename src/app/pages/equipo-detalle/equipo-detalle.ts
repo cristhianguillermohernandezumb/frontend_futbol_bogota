@@ -5,11 +5,10 @@ import { forkJoin } from 'rxjs';
 import { mensajeDeError } from '../../core/api-error';
 import { EntrenadorPublico, EquipoInscrito, JugadorInscrito } from '../../core/models';
 import { TorneoService } from '../../core/torneo.service';
-import { EscudoEquipo } from '../../shared/escudo-equipo/escudo-equipo';
 
 @Component({
   selector: 'app-equipo-detalle',
-  imports: [RouterLink, EscudoEquipo],
+  imports: [RouterLink],
   templateUrl: './equipo-detalle.html',
   styleUrl: './equipo-detalle.css',
 })
@@ -66,5 +65,9 @@ export class EquipoDetalle implements OnInit {
 
   protected nombre(e: EntrenadorPublico): string {
     return [e.primerNombre, e.segundoNombre, e.primerApellido, e.segundoApellido].filter(Boolean).join(' ');
+  }
+
+  protected etiquetaPierna(pierna: string): string {
+    return pierna ? pierna.charAt(0) + pierna.slice(1).toLowerCase() : '';
   }
 }

@@ -34,7 +34,10 @@
       @for (j of plantillaOrdenada(); track j.idJugador) {
         <li class="fila">
           <span class="camiseta" aria-label="Camiseta">{{ j.numeroCamiseta }}</span>
-          <strong>{{ j.nombreJugador }}</strong>
+          <span>
+            <strong>{{ j.nombreJugador }}</strong><br />
+            <span class="ayuda">Pierna hábil: {{ etiquetaPierna(j.piernaHabil) }}</span>
+          </span>
           @if (puedeModificar()) {
             <div class="acciones">
               <button type="button" class="boton boton-borde boton-chico" [attr.aria-expanded]="editando() === j.idJugador"
@@ -303,13 +306,7 @@
                 }
               </select>
             </div>
-            <div class="grupo">
-              <label for="correoJ">Correo <span class="ayuda">(opcional)</span></label>
-              <input id="correoJ" type="email" formControlName="correo" [attr.aria-invalid]="invalidoN('correo')" />
-              @if (invalidoN('correo')) {
-                <p class="error-campo">Escribe un correo válido.</p>
-              }
-            </div>
+            <app-correos-multiples [(correos)]="correosNuevo" [intento]="intento()" idBase="correoJ" />
             <div class="grupo">
               <label for="telefonoJ">Teléfono <span class="ayuda">(opcional)</span></label>
               <input id="telefonoJ" type="tel" formControlName="telefono" inputmode="numeric" [attr.aria-invalid]="invalidoN('telefono')" />

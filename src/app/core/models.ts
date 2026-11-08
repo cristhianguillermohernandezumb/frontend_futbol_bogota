@@ -203,6 +203,7 @@ export interface JugadorInscrito {
   idEquipo: number;
   idTorneo: number;
   numeroCamiseta: number;
+  piernaHabil: PiernaHabil;
 }
 
 export type RolArbitro = 'CENTRAL' | 'ASISTENTE_1' | 'ASISTENTE_2' | 'CUARTO' | 'VAR';

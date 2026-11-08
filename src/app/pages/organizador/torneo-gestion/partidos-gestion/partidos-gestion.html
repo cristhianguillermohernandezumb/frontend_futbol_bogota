@@ -143,6 +143,9 @@
               }
             }
           </div>
+          @if (reprogramando() === p.idPartido) {
+            <app-reprogramar-partido [partido]="p" [min]="minFecha()" [max]="maxFecha()" (hecho)="reprogramado()" (cancelar)="reprogramando.set(null)" />
+          }
           @if (conArbitros() === p.idPartido) {
             <app-arbitros-partido [idPartido]="p.idPartido" [estadoPartido]="p.estado" />
           }

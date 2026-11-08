@@ -20,6 +20,7 @@ import { OrganizadorService } from '../../../../core/organizador.service';
 import { TorneoService } from '../../../../core/torneo.service';
 import { EscudoEquipo } from '../../../../shared/escudo-equipo/escudo-equipo';
 import { ArbitrosPartido } from '../arbitros-partido/arbitros-partido';
+import { ReprogramarPartido } from '../../../../shared/reprogramar-partido/reprogramar-partido';
 
 interface Mensaje {
   tipo: 'ok' | 'error';
@@ -69,7 +70,7 @@ const ETIQUETA_ESTADO: Record<EstadoPartido, string> = {
 
 @Component({
   selector: 'app-partidos-gestion',
-  imports: [ReactiveFormsModule, DatePipe, RouterLink, ArbitrosPartido, EscudoEquipo],
+  imports: [ReactiveFormsModule, DatePipe, RouterLink, ArbitrosPartido, EscudoEquipo, ReprogramarPartido],
   templateUrl: './partidos-gestion.html',
   styleUrl: './partidos-gestion.css',
 })
@@ -380,7 +381,21 @@ export class PartidosGestion implements OnInit {
     );
   }
 
+  protected readonly reprogramando = signal<number | null>(null);
+
+  protected reprogramado(): void {
+    this.reprogramando.set(null);
+    this.mensaje.set({ tipo: 'ok', texto: 'Partido reprogramado.' });
+    this.cargar();
+  }
+
   protected cambiarEstado(p: PartidoConEquipos, t: Transicion): void {
+    if (t.valor === 'PROGRAMADO') {
+      // Reprogramar pide la nueva fecha en vez de repetir la misma.
+      this.mensaje.set(null);
+      this.reprogramando.set(p.idPartido);
+      return;
+    }
     this.ejecutar(
       this.organizador.cambiarEstadoPartido(p.idPartido, t.valor),
       `Partido ${ETIQUETA_ESTADO[t.valor].toLowerCase()}.`,

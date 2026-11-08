@@ -10,6 +10,7 @@ import { TorneoService } from '../../../core/torneo.service';
 import { AlineacionEquipo } from './alineacion-equipo/alineacion-equipo';
 import { TandaPenales } from '../../../shared/tanda-penales/tanda-penales';
 import { EventosPartido } from './eventos-partido/eventos-partido';
+import { ReprogramarPartido } from '../../../shared/reprogramar-partido/reprogramar-partido';
 
 interface Transicion {
   valor: EstadoPartido;
@@ -35,7 +36,7 @@ const ETIQUETA_ESTADO: Record<EstadoPartido, string> = {
 
 @Component({
   selector: 'app-partido-gestion',
-  imports: [RouterLink, DatePipe, AlineacionEquipo, EventosPartido, TandaPenales],
+  imports: [RouterLink, DatePipe, AlineacionEquipo, EventosPartido, TandaPenales, ReprogramarPartido],
   templateUrl: './partido-gestion.html',
   styleUrl: './partido-gestion.css',
 })
@@ -56,6 +57,22 @@ export class PartidoGestion implements OnInit {
   protected readonly errorEstado = signal<string | null>(null);
   protected readonly cambiando = signal(false);
   protected readonly confirmando = signal<EstadoPartido | null>(null);
+  protected readonly reprogramando = signal(false);
+
+  protected minFecha(): string | null {
+    const t = this.torneo();
+    return t ? t.fechaInicio + 'T00:00' : null;
+  }
+
+  protected maxFecha(): string | null {
+    const t = this.torneo();
+    return t ? t.fechaFin + 'T23:59' : null;
+  }
+
+  protected reprogramado(): void {
+    this.reprogramando.set(false);
+    this.recargarPartido();
+  }
 
   protected readonly esDueno = computed(() => {
     const t = this.torneo();
@@ -191,6 +208,10 @@ export class PartidoGestion implements OnInit {
     if (t.valor === 'EN_JUEGO' || t.valor === 'FINALIZADO') {
       this.errorEstado.set(null);
       this.confirmando.set(t.valor);
+    } else if (t.valor === 'PROGRAMADO') {
+      // Reprogramar pide la nueva fecha en vez de repetir la misma.
+      this.errorEstado.set(null);
+      this.reprogramando.set(true);
     } else {
       this.cambiarEstado(t);
     }

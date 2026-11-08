@@ -12,6 +12,7 @@ import { TorneoService } from '../../../../core/torneo.service';
 import { EscudoEquipo } from '../../../../shared/escudo-equipo/escudo-equipo';
 import { TandaPenales } from '../../../../shared/tanda-penales/tanda-penales';
 import { ArbitrosPartido } from '../arbitros-partido/arbitros-partido';
+import { ReprogramarPartido } from '../../../../shared/reprogramar-partido/reprogramar-partido';
 
 interface Mensaje {
   tipo: 'ok' | 'error';
@@ -61,7 +62,7 @@ interface GrupoRonda {
  */
 @Component({
   selector: 'app-partidos-eliminatoria',
-  imports: [ReactiveFormsModule, DatePipe, RouterLink, ArbitrosPartido, EscudoEquipo, TandaPenales],
+  imports: [ReactiveFormsModule, DatePipe, RouterLink, ArbitrosPartido, EscudoEquipo, ReprogramarPartido, TandaPenales],
   templateUrl: './partidos-eliminatoria.html',
   styleUrl: './partidos-eliminatoria.css',
 })
@@ -202,7 +203,21 @@ export class PartidosEliminatoria implements OnInit {
     );
   }
 
+  protected readonly reprogramando = signal<number | null>(null);
+
+  protected reprogramado(): void {
+    this.reprogramando.set(null);
+    this.mensaje.set({ tipo: 'ok', texto: 'Partido reprogramado.' });
+    this.cargar();
+  }
+
   protected cambiarEstado(p: PartidoConEquipos, t: Transicion): void {
+    if (t.valor === 'PROGRAMADO') {
+      // Reprogramar pide la nueva fecha en vez de repetir la misma.
+      this.mensaje.set(null);
+      this.reprogramando.set(p.idPartido);
+      return;
+    }
     this.ejecutar(this.organizador.cambiarEstadoPartido(p.idPartido, t.valor), `Partido ${ETIQUETA_ESTADO[t.valor].toLowerCase()}.`);
   }
 

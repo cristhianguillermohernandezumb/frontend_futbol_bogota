@@ -109,6 +109,9 @@
                 }
               }
             </div>
+            @if (reprogramando() === p.idPartido) {
+              <app-reprogramar-partido [partido]="p" [min]="minFecha()" [max]="maxFecha()" (hecho)="reprogramado()" (cancelar)="reprogramando.set(null)" />
+            }
             @if (conPenales() === p.idPartido) {
               <app-tanda-penales [idPartido]="p.idPartido" [local]="{ idEquipo: f.cruce.idLocal, nombre: f.cruce.nombreLocal }"
                 [visitante]="{ idEquipo: f.cruce.idVisitante, nombre: f.cruce.nombreVisitante }" [editable]="p.estado === 'EN_JUEGO'"
