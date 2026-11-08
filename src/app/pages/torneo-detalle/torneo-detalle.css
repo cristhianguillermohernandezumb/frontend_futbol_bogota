@@ -271,6 +271,15 @@
   inset: 0;
 }
 
+/* En la tabla de grupos el enlace es solo el nombre: sin posicion de la tarjeta, el estiramiento cubria toda la pagina. */
+.grupo-tabla .equipo-enlace::after {
+  content: none;
+}
+
+.grupo-tabla .equipo-enlace:hover {
+  text-decoration: underline;
+}
+
 .equipo-escudo {
   --escudo: 3.5rem;
   margin-bottom: 0.3rem;
