@@ -6,17 +6,6 @@
   }
 
   <form class="formulario" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
-    <fieldset class="roles">
-      <legend>¿Qué quieres hacer?</legend>
-      @for (r of roles; track r.valor) {
-        <label class="rol">
-          <input type="radio" formControlName="rol" [value]="r.valor" />
-          <span class="rol-titulo">{{ r.titulo }}</span>
-          <span class="rol-texto">{{ r.texto }}</span>
-        </label>
-      }
-    </fieldset>
-
     <div class="rejilla">
       <div class="grupo">
         <label for="primerNombre">Primer nombre</label>

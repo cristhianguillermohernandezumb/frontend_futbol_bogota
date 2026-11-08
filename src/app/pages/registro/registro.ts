@@ -24,13 +24,8 @@ export class Registro {
     telefono: ['', [Validators.pattern(/^\d{7,15}$/)]],
     correo: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
     contrasenia: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]],
-    rol: ['ESPECTADOR' as 'ESPECTADOR' | 'ORGANIZADOR', [Validators.required]],
+    rol: ['ESPECTADOR' as const],
   });
-
-  protected readonly roles = [
-    { valor: 'ESPECTADOR' as const, titulo: 'Seguir torneos', texto: 'Consulta partidos y tablas, y recibe avisos.' },
-    { valor: 'ORGANIZADOR' as const, titulo: 'Organizar torneos', texto: 'Crea torneos, equipos y partidos.' },
-  ];
 
   protected readonly intento = signal(false);
   protected readonly enviando = signal(false);
@@ -62,7 +57,7 @@ export class Registro {
       })
       .subscribe({
         next: () => {
-          void this.router.navigate(['/login'], { queryParams: { registrado: v.rol === 'ORGANIZADOR' ? 2 : 1 } });
+          void this.router.navigate(['/login'], { queryParams: { registrado: 1 } });
         },
         error: (err: unknown) => {
           this.error.set(mensajeDeError(err));

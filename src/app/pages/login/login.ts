@@ -33,7 +33,6 @@ export class Login {
 
   protected readonly expirada = this.ruta.snapshot.queryParamMap.get('motivo') === 'expirada';
   protected readonly registrado = this.ruta.snapshot.queryParamMap.get('registrado') === '1';
-  protected readonly pendiente = this.ruta.snapshot.queryParamMap.get('registrado') === '2';
 
   protected enviar(): void {
     this.intento.set(true);
