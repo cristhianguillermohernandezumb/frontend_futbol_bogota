@@ -4,6 +4,7 @@ import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
 
 import { API_URL } from './config';
 import {
+  Alineacion,
   EquipoDePartido,
   EntrenadorPublico,
   Cruce,
@@ -47,6 +48,16 @@ export class TorneoService {
   /** Entrenadores del equipo, solo datos publicos. */
   entrenadoresDeEquipo(idTorneo: number, idEquipo: number): Observable<EntrenadorPublico[]> {
     return this.http.get<EntrenadorPublico[]>(`${API_URL}/torneos/${idTorneo}/equipos/${idEquipo}/entrenadores`);
+  }
+
+  /** Los dos equipos de un partido (consulta publica). */
+  equiposDePartido(idPartido: number): Observable<EquipoDePartido[]> {
+    return this.http.get<EquipoDePartido[]>(`${API_URL}/partidos/${idPartido}/equipos`);
+  }
+
+  /** Alineacion de un partido con los minutos jugados (consulta publica). */
+  alineacion(idPartido: number): Observable<Alineacion[]> {
+    return this.http.get<Alineacion[]>(`${API_URL}/partidos/${idPartido}/alineacion`);
   }
 
   /** Tanda de penales de un partido (consulta publica). */

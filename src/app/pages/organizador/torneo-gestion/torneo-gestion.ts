@@ -1,6 +1,6 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { mensajeDeError } from '../../../core/api-error';
 import { AuthService } from '../../../core/auth.service';
@@ -49,6 +49,7 @@ const SIGUIENTE: Record<EstadoTorneo, { valor: EstadoTorneo; boton: string; avis
 })
 export class TorneoGestion implements OnInit {
   private readonly ruta = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly torneoService = inject(TorneoService);
   private readonly organizador = inject(OrganizadorService);
   protected readonly auth = inject(AuthService);
@@ -88,6 +89,11 @@ export class TorneoGestion implements OnInit {
   private id = 0;
 
   ngOnInit(): void {
+    // Permite volver directo a una pestana: /organizador/torneos/1?pestana=partidos
+    const pedida = this.ruta.snapshot.queryParamMap.get('pestana');
+    if (pedida && this.pestanas().some((x) => x.id === pedida)) {
+      this.pestana.set(pedida as Pestana);
+    }
     this.ruta.paramMap.subscribe((params) => {
       this.id = Number(params.get('id'));
       this.cargar();
@@ -116,6 +122,8 @@ export class TorneoGestion implements OnInit {
 
   protected elegir(p: Pestana): void {
     this.pestana.set(p);
+    // La pestana queda en la URL (sin apilar historial) para que "atras" regrese a esta misma pestana.
+    void this.router.navigate([], { relativeTo: this.ruta, queryParams: { pestana: p }, replaceUrl: true });
   }
 
   protected cambiarEstado(): void {

@@ -1,5 +1,6 @@
 @if (partido(); as p) {
-  <a class="volver" [routerLink]="['/organizador/torneos', p.idTorneo]">← {{ torneo()?.nombre ?? 'Torneo' }}</a>
+  <a class="volver" [routerLink]="['/organizador/torneos', p.idTorneo]"
+    [queryParams]="{ pestana: esEliminatoria() ? 'eliminatorias' : 'partidos' }">← {{ torneo()?.nombre ?? 'Torneo' }}</a>
 } @else {
   <a class="volver" routerLink="/organizador">← Mis torneos</a>
 }

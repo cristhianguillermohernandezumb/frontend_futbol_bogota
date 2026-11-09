@@ -1,6 +1,6 @@
 import { CurrencyPipe, DatePipe, NgTemplateOutlet } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 
 import { mensajeDeError } from '../../core/api-error';
@@ -69,6 +69,7 @@ function inicial<T>(datos: T): Seccion<T> {
 })
 export class TorneoDetalle implements OnInit {
   private readonly ruta = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly torneoService = inject(TorneoService);
   private readonly espectador = inject(EspectadorService);
   protected readonly auth = inject(AuthService);
@@ -114,15 +115,19 @@ export class TorneoDetalle implements OnInit {
 
   protected readonly gruposTerminados = computed(() => faseDeGruposTerminada(this.partidos().datos));
 
-  /** Partidos agrupados por jornada, en orden de fecha. */
+  /** Partidos agrupados por jornada, del mas reciente al mas antiguo. */
   protected readonly jornadas = computed(() => {
     const porJornada = new Map<number, PartidoConEquipos[]>();
-    const ordenados = [...this.partidos().datos].sort((a, b) => a.fechaHora.localeCompare(b.fechaHora));
+    // Para todos los roles, lo mas reciente va primero.
+    const reciente = true;
+    const ordenados = [...this.partidos().datos].sort((a, b) =>
+      reciente ? b.fechaHora.localeCompare(a.fechaHora) : a.fechaHora.localeCompare(b.fechaHora),
+    );
     for (const p of ordenados) {
       porJornada.set(p.jornada, [...(porJornada.get(p.jornada) ?? []), p]);
     }
     return [...porJornada.entries()]
-      .sort(([a], [b]) => a - b)
+      .sort(([a], [b]) => (reciente ? b - a : a - b))
       .map(([jornada, lista]) => ({ jornada, partidos: lista }));
   });
 
@@ -340,6 +345,8 @@ export class TorneoDetalle implements OnInit {
 
   protected elegir(p: Pestana): void {
     this.pestana.set(p);
+    // La pestana queda en la URL (sin apilar historial) para que "atras" regrese a esta misma pestana.
+    void this.router.navigate([], { relativeTo: this.ruta, queryParams: { pestana: p }, replaceUrl: true });
   }
 
   protected numeral(m: Modalidad): string {

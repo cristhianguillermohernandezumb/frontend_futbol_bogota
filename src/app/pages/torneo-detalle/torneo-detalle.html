@@ -304,6 +304,7 @@
                         {{ conPenales() === p.idPartido ? 'Ocultar penales' : 'Penales' }}
                       </button>
                     }
+                    <a class="enlace" [routerLink]="['/torneos', p.idTorneo, 'partidos', p.idPartido, 'alineacion']">Ver alineación</a>
                     @if (conMarcador(p)) {
                       <button type="button" class="enlace" [attr.aria-expanded]="abierto() === p.idPartido" (click)="alternarEventos(p)">
                         {{ abierto() === p.idPartido ? 'Ocultar eventos' : 'Ver eventos' }}

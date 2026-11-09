@@ -17,6 +17,11 @@ export const routes: Routes = [
     title: 'Equipo',
   },
   {
+    path: 'torneos/:id/partidos/:idPartido/alineacion',
+    loadComponent: () => import('./pages/alineacion-partido/alineacion-partido').then((m) => m.AlineacionPartido),
+    title: 'Alineación',
+  },
+  {
     path: 'organizador',
     canActivate: [organizador],
     loadComponent: () => import('./pages/organizador/panel/panel').then((m) => m.Panel),
