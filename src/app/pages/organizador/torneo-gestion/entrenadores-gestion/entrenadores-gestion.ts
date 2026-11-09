@@ -6,6 +6,7 @@ import { mensajeDeError } from '../../../../core/api-error';
 import { Entrenador, EntrenadorRequest, EquipoInscrito, TipoDocumento, Torneo } from '../../../../core/models';
 import { OrganizadorService } from '../../../../core/organizador.service';
 import { CorreosMultiples, correoValido } from '../../../../shared/correos-multiples/correos-multiples';
+import { TelefonosMultiples, telefonoValido } from '../../../../shared/telefonos-multiples/telefonos-multiples';
 import { TorneoService } from '../../../../core/torneo.service';
 
 interface Mensaje {
@@ -15,7 +16,7 @@ interface Mensaje {
 
 @Component({
   selector: 'app-entrenadores-gestion',
-  imports: [ReactiveFormsModule, CorreosMultiples],
+  imports: [ReactiveFormsModule, CorreosMultiples, TelefonosMultiples],
   templateUrl: './entrenadores-gestion.html',
   styleUrl: './entrenadores-gestion.css',
 })
@@ -39,6 +40,7 @@ export class EntrenadoresGestion implements OnInit {
   protected readonly intento = signal(false);
   protected readonly editando = signal<Entrenador | null>(null);
   protected readonly correos = signal<string[]>(['']);
+  protected readonly telefonos = signal<string[]>(['']);
 
   protected readonly puedeModificar = computed(() => this.torneo().estado !== 'FINALIZADO');
   protected readonly tipos: TipoDocumento[] = ['CC', 'CE', 'TI', 'PAS'];
@@ -54,7 +56,6 @@ export class EntrenadoresGestion implements OnInit {
     fechaNacimiento: ['', [Validators.required]],
     aniosExperiencia: [null as number | null, [Validators.required, Validators.min(0), Validators.max(70)]],
     nacionalidad: ['Colombiana', [Validators.required, Validators.maxLength(50)]],
-    telefono: ['', [Validators.pattern(/^\d{7,20}$/)]],
   });
 
   ngOnInit(): void {
@@ -117,6 +118,7 @@ export class EntrenadoresGestion implements OnInit {
     this.editando.set(null);
     this.form.reset({ tipoDocumento: 'CC', nacionalidad: 'Colombiana' });
     this.correos.set(['']);
+    this.telefonos.set(['']);
     this.abierto.set(true);
   }
 
@@ -135,9 +137,9 @@ export class EntrenadoresGestion implements OnInit {
       fechaNacimiento: e.fechaNacimiento,
       aniosExperiencia: e.aniosExperiencia,
       nacionalidad: e.nacionalidad,
-      telefono: e.telefonos[0] ?? '',
     });
     this.correos.set(e.correos.length > 0 ? [...e.correos] : ['']);
+    this.telefonos.set(e.telefonos.length > 0 ? [...e.telefonos] : ['']);
     this.abierto.set(true);
   }
 
@@ -157,7 +159,7 @@ export class EntrenadoresGestion implements OnInit {
 
   protected inscribir(): void {
     this.intento.set(true);
-    if (this.form.invalid || !this.correos().every(correoValido)) {
+    if (this.form.invalid || !this.correos().every(correoValido) || !this.telefonos().every(telefonoValido)) {
       return;
     }
     const v = this.form.getRawValue();
@@ -173,19 +175,18 @@ export class EntrenadoresGestion implements OnInit {
       nacionalidad: v.nacionalidad.trim(),
       idEquipo: this.equipoId(),
       correos: this.correos().map((c) => c.trim()).filter(Boolean),
-      telefonos: v.telefono.trim() ? [v.telefono.trim()] : [],
+      telefonos: this.telefonos().map((t) => t.trim()).filter(Boolean),
     };
     const alTerminar = () => {
       this.form.reset({ tipoDocumento: 'CC', nacionalidad: 'Colombiana' });
       this.correos.set(['']);
+      this.telefonos.set(['']);
       this.intento.set(false);
       this.abierto.set(false);
       this.editando.set(null);
     };
     const actual = this.editando();
     if (actual) {
-      // conserva los contactos adicionales que el formulario no muestra
-      datos.telefonos = [...datos.telefonos, ...actual.telefonos.slice(1)];
       this.ejecutar(
         this.organizador.actualizarEntrenador(actual.idEntrenador, datos),
         `Datos de ${this.nombre(actual)} actualizados.`,

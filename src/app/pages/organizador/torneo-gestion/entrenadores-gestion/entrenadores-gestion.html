@@ -134,13 +134,7 @@
                 [attr.aria-invalid]="invalido('nacionalidad')" />
             </div>
             <app-correos-multiples [(correos)]="correos" [intento]="intento()" idBase="correoE" />
-            <div class="grupo">
-              <label for="telefonoE">Teléfono <span class="ayuda">(opcional)</span></label>
-              <input id="telefonoE" type="tel" formControlName="telefono" inputmode="numeric" [attr.aria-invalid]="invalido('telefono')" />
-              @if (invalido('telefono')) {
-                <p class="error-campo">Solo números (7 a 20 dígitos).</p>
-              }
-            </div>
+            <app-telefonos-multiples [(telefonos)]="telefonos" [intento]="intento()" idBase="telefonoE" />
           </div>
           <div class="botones">
             <button type="submit" class="boton boton-peto" [disabled]="trabajando()">

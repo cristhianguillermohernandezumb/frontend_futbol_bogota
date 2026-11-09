@@ -6,6 +6,7 @@ import { mensajeDeError } from '../../../../core/api-error';
 import { Arbitro, ArbitroAsignado, EstadoPartido, RolArbitro, TipoDocumento } from '../../../../core/models';
 import { OrganizadorService } from '../../../../core/organizador.service';
 import { CorreosMultiples, correoValido } from '../../../../shared/correos-multiples/correos-multiples';
+import { TelefonosMultiples, telefonoValido } from '../../../../shared/telefonos-multiples/telefonos-multiples';
 
 interface Mensaje {
   tipo: 'ok' | 'error';
@@ -22,7 +23,7 @@ const ROLES: { valor: RolArbitro; texto: string }[] = [
 
 @Component({
   selector: 'app-arbitros-partido',
-  imports: [ReactiveFormsModule, CorreosMultiples],
+  imports: [ReactiveFormsModule, CorreosMultiples, TelefonosMultiples],
   templateUrl: './arbitros-partido.html',
   styleUrl: './arbitros-partido.css',
 })
@@ -76,7 +77,6 @@ export class ArbitrosPartido implements OnInit {
     fechaNacimiento: ['', [Validators.required]],
     numeroLicencia: [null as number | null, [Validators.required, Validators.min(1)]],
     nacionalidad: ['Colombiana', [Validators.required, Validators.maxLength(50)]],
-    telefono: ['', [Validators.pattern(/^\d{7,20}$/)]],
   });
 
   ngOnInit(): void {
@@ -150,10 +150,11 @@ export class ArbitrosPartido implements OnInit {
   }
 
   protected readonly correosNuevo = signal<string[]>(['']);
+  protected readonly telefonosNuevo = signal<string[]>(['']);
 
   protected crearArbitro(): void {
     this.intento.set(true);
-    if (this.formNuevo.invalid || !this.correosNuevo().every(correoValido)) {
+    if (this.formNuevo.invalid || !this.correosNuevo().every(correoValido) || !this.telefonosNuevo().every(telefonoValido)) {
       return;
     }
     const v = this.formNuevo.getRawValue();
@@ -172,7 +173,7 @@ export class ArbitrosPartido implements OnInit {
         nacionalidad: v.nacionalidad.trim(),
         estado: 'ACTIVO',
         correos: this.correosNuevo().map((c) => c.trim()).filter(Boolean),
-        telefonos: v.telefono.trim() ? [v.telefono.trim()] : [],
+        telefonos: this.telefonosNuevo().map((t) => t.trim()).filter(Boolean),
       })
       .subscribe({
         next: (nuevo) => {
@@ -180,6 +181,7 @@ export class ArbitrosPartido implements OnInit {
           this.mensaje.set({ tipo: 'ok', texto: 'Árbitro creado. Elige su rol y asígnalo al partido.' });
           this.formNuevo.reset({ tipoDocumento: 'CC', nacionalidad: 'Colombiana' });
           this.correosNuevo.set(['']);
+          this.telefonosNuevo.set(['']);
           this.intento.set(false);
           this.mostrarNuevo.set(false);
           // Se deja elegido el arbitro recien creado para asignarlo con un clic.

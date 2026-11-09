@@ -16,6 +16,7 @@ import {
 } from '../../../../core/models';
 import { OrganizadorService } from '../../../../core/organizador.service';
 import { CorreosMultiples, correoValido } from '../../../../shared/correos-multiples/correos-multiples';
+import { TelefonosMultiples, telefonoValido } from '../../../../shared/telefonos-multiples/telefonos-multiples';
 import { TorneoService } from '../../../../core/torneo.service';
 
 interface Mensaje {
@@ -25,7 +26,7 @@ interface Mensaje {
 
 @Component({
   selector: 'app-jugadores-gestion',
-  imports: [ReactiveFormsModule, CorreosMultiples],
+  imports: [ReactiveFormsModule, CorreosMultiples, TelefonosMultiples],
   templateUrl: './jugadores-gestion.html',
   styleUrl: './jugadores-gestion.css',
 })
@@ -97,7 +98,6 @@ export class JugadoresGestion implements OnInit {
     piernaHabil: ['DERECHA' as PiernaHabil, [Validators.required]],
     nacionalidad: ['Colombiana', [Validators.required, Validators.maxLength(50)]],
     posicion: ['DELANTERO' as PosicionJugador, [Validators.required]],
-    telefono: ['', [Validators.pattern(/^\d{7,20}$/)]],
     numeroCamiseta: [null as number | null, [Validators.required, Validators.min(0), Validators.max(99)]],
   });
 
@@ -223,10 +223,11 @@ export class JugadoresGestion implements OnInit {
   }
 
   protected readonly correosNuevo = signal<string[]>(['']);
+  protected readonly telefonosNuevo = signal<string[]>(['']);
 
   protected crearEInscribir(): void {
     this.intento.set(true);
-    if (this.formNuevo.invalid || !this.correosNuevo().every(correoValido)) {
+    if (this.formNuevo.invalid || !this.correosNuevo().every(correoValido) || !this.telefonosNuevo().every(telefonoValido)) {
       return;
     }
     const v = this.formNuevo.getRawValue();
@@ -245,7 +246,7 @@ export class JugadoresGestion implements OnInit {
       estado: 'ACTIVO',
       posicion: v.posicion,
       correos: this.correosNuevo().map((c) => c.trim()).filter(Boolean),
-      telefonos: v.telefono.trim() ? [v.telefono.trim()] : [],
+      telefonos: this.telefonosNuevo().map((t) => t.trim()).filter(Boolean),
     };
     // Si el jugador ya se creo en un intento anterior (y solo fallo la inscripcion), no se vuelve a crear.
     const clave = `${datos.tipoDocumento}-${datos.documento}`;
@@ -263,6 +264,7 @@ export class JugadoresGestion implements OnInit {
       () => {
         this.creado = null;
         this.correosNuevo.set(['']);
+        this.telefonosNuevo.set(['']);
         this.formNuevo.reset({
           tipoDocumento: 'CC',
           piernaHabil: 'DERECHA',
